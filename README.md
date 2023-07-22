@@ -12,10 +12,11 @@ The directory structure is as follows
 
 ## details...
 
-`data` comes from the website http://yann.lecun.com/exdb/mnist/
+### data
+Comes from the website http://yann.lecun.com/exdb/mnist/ and is needed for this project
 
-
-`1_reading_mnist_labels` asks ChatGPT to convert the following file format to code.  In addition to this, it shows how to generate the program in multiple languages and deals with various issues.
+### 1_reading_mnist_labels
+Asks ChatGPT to convert the following file format to code.  In addition to this, it shows how to generate the program in multiple languages and deals with various issues.
 
 ```
 generate a function in c to read a file with the following format and return a structure 
@@ -31,7 +32,27 @@ xxxx     unsigned byte   ??               label
 The labels values are 0 to 9.
 ```
 
-`2_reading_mnist_images` asks ChatGPT to convert the following file format to code in C.  The code can easily be converted to other languages using the technique in `1_reading_mnist_labels`.
+yielding
+
+```bash
+File: ../../data/t10k-labels-idx1-ubyte
+Magic Number: 2049
+Number of Items: 10000
+Labels:
+[0] 7
+[1] 2
+[2] 1
+[3] 0
+[4] 4
+[5] 1
+[6] 4
+...
+```
+
+
+### 2_reading_mnist_images
+Asks ChatGPT to convert the following file format to code in C.  The code can easily be converted to other languages using the technique in `1_reading_mnist_labels`.
+
 ```
 generate a function in c to read a file with the following format and return a structure
 containing the response.  Allow the names of the file to be passed to a function which are 
@@ -48,5 +69,32 @@ derived from the command line.  Also, generate a makefile for this project.
 xxxx     unsigned byte   ??               pixel
 
 Pixels are organized row-wise. Pixel values are 0 to 255. 0 means background (white), 255 means foreground (black).
+```
+
+yielding
+
+```bash
+% ./file_reader ../../data/t10k-images-idx3-ubyte
+Magic Number: 0x00000803
+Number of Images: 10000
+Number of Rows: 28
+Number of Columns: 28
+
+Image 1:
+Pixel Values (First 200): 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+
+Image 2:
+Pixel Values (First 200): 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 116 125 171 255 255 150 93 0 0 0 0 0 0 0 0 0 
+ 0 0 0 0 0 0 0 0 0 0 0 169 253 253 253 253 253 253 218 30 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+ 0 0 0 0 169 253 253 253 213 142 176 253 253 122 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 52 
+ 250 253 210 32 12 0 6 206 253 140 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
+...
 ```
 

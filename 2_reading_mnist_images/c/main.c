@@ -11,7 +11,7 @@ typedef struct {
     uint32_t num_images;
     uint32_t num_rows;
     uint32_t num_columns;
-    uint8_t *pixels;
+    uint8_t **images; // Array of pointers to image pixel data
 } ImageData;
 
 // Function to read the file and extract the image data
@@ -44,18 +44,27 @@ ImageData readImageFile(const char *filename) {
         exit(1);
     }
 
-    // Calculate the total number of pixels in the image
-    size_t num_pixels = data.num_images * data.num_rows * data.num_columns;
-    data.pixels = (uint8_t *)malloc(num_pixels);
-
-    if (data.pixels == NULL) {
+    // Allocate memory for the array of image pixel data pointers
+    data.images = (uint8_t **)malloc(data.num_images * sizeof(uint8_t *));
+    if (data.images == NULL) {
         fprintf(stderr, "Memory allocation error\n");
         fclose(file);
         exit(1);
     }
 
-    // Read the pixel data
-    fread(data.pixels, sizeof(uint8_t), num_pixels, file);
+    // Calculate the total number of pixels in each image
+    size_t num_pixels = data.num_rows * data.num_columns;
+
+    // Read the pixel data for each image
+    for (uint32_t i = 0; i < data.num_images; i++) {
+        data.images[i] = (uint8_t *)malloc(num_pixels * sizeof(uint8_t));
+        if (data.images[i] == NULL) {
+            fprintf(stderr, "Memory allocation error\n");
+            fclose(file);
+            exit(1);
+        }
+        fread(data.images[i], sizeof(uint8_t), num_pixels, file);
+    }
 
     fclose(file);
 
@@ -64,7 +73,10 @@ ImageData readImageFile(const char *filename) {
 
 // Function to free the memory allocated for image data
 void freeImageData(ImageData data) {
-    free(data.pixels);
+    for (uint32_t i = 0; i < data.num_images; i++) {
+        free(data.images[i]);
+    }
+    free(data.images);
 }
 
 int main(int argc, char *argv[]) {
@@ -82,12 +94,18 @@ int main(int argc, char *argv[]) {
     printf("Number of Rows: %u\n", imageData.num_rows);
     printf("Number of Columns: %u\n", imageData.num_columns);
 
-    // Example: Print the first 10 pixel values of the first image
-    printf("Pixel Values (First 10): ");
-    for (size_t i = 0; i < 10; i++) {
-        printf("%u ", imageData.pixels[i]);
+    // Example: Print the first 200 pixel values of the first 20 images
+    uint32_t num_images_to_print = 20;
+    uint32_t num_pixels_to_print = 200;
+
+    for (uint32_t i = 0; i < num_images_to_print && i < imageData.num_images; i++) {
+        printf("\nImage %u:\n", i + 1);
+        printf("Pixel Values (First %u): ", num_pixels_to_print);
+        for (size_t j = 0; j < num_pixels_to_print && j < imageData.num_rows * imageData.num_columns; j++) {
+            printf("%u ", imageData.images[i][j]);
+        }
+        printf("\n");
     }
-    printf("\n");
 
     // Free the memory allocated for image data
     freeImageData(imageData);
