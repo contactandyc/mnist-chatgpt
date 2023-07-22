@@ -98,3 +98,29 @@ Pixel Values (First 200): 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
 ...
 ```
 
+### 3_load_train_test
+
+Using functions generated from the first two seconds, create a combined structure which includes the inputs and targets.
+
+yields
+
+```bash
+% ./file_reader ../../data/t10k-images-idx3-ubyte ../../data/t10k-labels-idx1-ubyte
+Number of Targets: 10000
+Number of Images: 10000
+
+First 10 Targets: 7 2 1 0 4 1 4 9 5 9 
+
+First 20 Images:
+Image 1:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+Image 2:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+Image 3:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+Image 4:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+Image 5:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+```
+
