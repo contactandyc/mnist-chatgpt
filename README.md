@@ -8,6 +8,12 @@ The directory structure is as follows
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`python` a python version of `file_reader`<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`go` a go version of `file_reader`<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`psuedocode` a non-running psuedocode version of `file_reader`<br/>
+`2_reading_mnist_images` shows how to use ChatGPT to generate a program to read the mnist image data and print it to the screen.</br>
+
+## details...
+
+`data` comes from the website http://yann.lecun.com/exdb/mnist/
+
 
 `1_reading_mnist_labels` asks ChatGPT to convert the following file format to code.  In addition to this, it shows how to generate the program in multiple languages and deals with various issues.
 
@@ -23,5 +29,24 @@ containing the response
 ........
 xxxx     unsigned byte   ??               label
 The labels values are 0 to 9.
+```
+
+`2_reading_mnist_images` asks ChatGPT to convert the following file format to code in C.  The code can easily be converted to other languages using the technique in `1_reading_mnist_labels`.
+```
+generate a function in c to read a file with the following format and return a structure
+containing the response.  Allow the names of the file to be passed to a function which are 
+derived from the command line.  Also, generate a makefile for this project.
+
+[offset] [type]          [value]          [description] 
+0000     32 bit integer  0x00000803(2051) magic number 
+0004     32 bit integer  60000            number of images 
+0008     32 bit integer  28               number of rows 
+0012     32 bit integer  28               number of columns 
+0016     unsigned byte   ??               pixel 
+0017     unsigned byte   ??               pixel 
+........ 
+xxxx     unsigned byte   ??               pixel
+
+Pixels are organized row-wise. Pixel values are 0 to 255. 0 means background (white), 255 means foreground (black).
 ```
 
