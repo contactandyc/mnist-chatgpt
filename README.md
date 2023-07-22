@@ -9,6 +9,8 @@ The directory structure is as follows
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`go` a go version of `file_reader`<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`psuedocode` a non-running psuedocode version of `file_reader`<br/>
 `2_reading_mnist_images` shows how to use ChatGPT to generate a program to read the mnist image data and print it to the screen.</br>
+`3_load_train_test` create a structure which combines the images and the labels for training and testing.<br/>
+`4_one_hot_encoding` creates a function to convert the binary 0 to 9 to an array of floats using one hot encoding method.<br/>
 
 ## details...
 
@@ -122,5 +124,16 @@ Image 4:
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
 Image 5:
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+```
+
+### 4_one_hot_encoding
+
+Creates a function to convert the binary 0 to 9 to an array of floats using one hot encoding method.
+
+yields
+
+```c
+./one_hot_encoding
+Input 5: [0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 ]
 ```
 
