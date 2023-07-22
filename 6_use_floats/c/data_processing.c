@@ -12,7 +12,8 @@ float* convertToFloat(uint8_t* pixels, size_t num_pixels) {
 
     // Convert each pixel value to a floating point value in the range [0, 1]
     for (size_t i = 0; i < num_pixels; i++) {
-        floatPixels[i] = pixels[i] / 255.0;
+        float px = pixels[i];
+        floatPixels[i] = px / 255.0;
     }
 
     return floatPixels;

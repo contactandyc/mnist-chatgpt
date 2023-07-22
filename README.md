@@ -11,6 +11,8 @@ The directory structure is as follows
 `2_reading_mnist_images` shows how to use ChatGPT to generate a program to read the mnist image data and print it to the screen.</br>
 `3_load_train_test` create a structure which combines the images and the labels for training and testing.<br/>
 `4_one_hot_encoding` creates a function to convert the binary 0 to 9 to an array of floats using one hot encoding method.<br/>
+`5_convert_pixels_to_floats` converts 0..255 to 0..1 floats<br/>
+`6_use_floats` uses one hot encoding and the pixel conversion above to generate inputs and targets.<br/>
 
 ## details...
 
@@ -135,5 +137,23 @@ yields
 ```c
 ./one_hot_encoding
 Input 5: [0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 ]
+```
+
+### 5_convert_pixels_to_floats
+
+converts 0..255 to 0..1 floats.
+
+`{0, 127, 255}` => `0.00 0.50 1.00`
+
+### 6_use_floats
+
+Uses one hot encoding and the pixel conversion above to generate inputs and targets.
+
+```bash
+% ./use_floats ../../data/t10k-images-idx3-ubyte ../../data/t10k-labels-idx1-ubyte 
+Number of images: 10000
+Number of targets: 10000
+First 10 targets: [0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 ]
+First 10 inputs: [0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 ]
 ```
 

@@ -145,7 +145,8 @@ ImageDataWithLabels combineImageDataWithLabels(const char *image_file, const cha
     dataWithLabels.num_columns = imageData.num_columns;
 
     // Free the image data structure (without freeing the pixel data pointers, as they are now used by dataWithLabels)
-    freeImageData(imageData);
+    // ChatGPT error, this should not be freed!
+    // freeImageData(imageData);
 
     // Free the label response data
     freeLabelResponse(&labelResponse);

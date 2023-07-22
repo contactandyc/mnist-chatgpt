@@ -58,3 +58,19 @@ The `printFloatPixels` function is provided for demonstration purposes to print 
 
 In the `main` function, we create an example array of `uint8_t` pixels, convert them to floating points, and then print the converted floating-point pixel values. Finally, we free the memory allocated for the `floatPixels` array.
 
+# Summary
+
+The program is converting these pixels
+
+```c
+uint8_t pixels[] = {0, 127, 255};
+```
+
+Running
+
+```
+% ./convert_pixels_to_floats
+0.00 0.50 1.00 
+```
+
+validates success

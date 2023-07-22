@@ -573,3 +573,36 @@ make
 ```
 
 This will compile the program and generate an executable named `main`. When you run `./main`, it will load the `ImageData` and `LabelResponse` files, process the data, and print some information about the converted `InputAndTargets` structure.
+
+# My Commentary
+
+I made a minor change and called the program use_floats instead of main.  This involved changing `TARGET = main` to `TARGET = use_floats` in the Makefile.
+
+Also fixed a couple minor bugs.
+
+`data_processing.h` needed to include `stdio.h` to include size_t and the various printf functions.
+
+`image_utils.c` has a more significant bug and was fixed by changing 
+
+```c
+    // Free the image data structure (without freeing the pixel data pointers, as they are now used by dataWithLabels)
+    freeImageData(imageData);
+```
+
+to
+
+```c
+    // Free the image data structure (without freeing the pixel data pointers, as they are now used by dataWithLabels)
+    // ChatGPT error, this should not be freed!
+    // freeImageData(imageData);
+```
+
+Once this was done, the program compiled and worked as expected!
+
+```bash
+% ./use_floats ../../data/t10k-images-idx3-ubyte ../../data/t10k-labels-idx1-ubyte 
+Number of images: 10000
+Number of targets: 10000
+First 10 targets: [0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 ]
+First 10 inputs: [0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 ]
+```
