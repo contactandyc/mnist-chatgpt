@@ -715,3 +715,55 @@ void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs,
 ```
 
 Now the `output_error` is properly calculated before updating the hidden layer weights. The code should compile and run without any errors.
+
+
+# ChatGPT Prompt
+
+After changing the function, everything compiled.  However, when the program was run it took a long time and ...
+
+```bash
+% ./training ../../data/t10k-images-idx3-ubyte ../../data/t10k-labels-idx1-ubyte
+Epoch 1 - Average Loss: nan
+Epoch 2 - Average Loss: nan
+Epoch 3 - Average Loss: nan
+Epoch 4 - Average Loss: nan
+Epoch 5 - Average Loss: nan
+Epoch 6 - Average Loss: nan
+Epoch 7 - Average Loss: nan
+Epoch 8 - Average Loss: nan
+Epoch 9 - Average Loss: nan
+Epoch 10 - Average Loss: nan
+Test Accuracy: 23.30%
+```
+
+Going back to ChatGPT to figure out what is happening
+
+```
+When training the neural network, the following is printed for each epoch
+
+Epoch 1 - Average Loss: nan
+```
+
+# ChatGPT Output
+
+The issue you are encountering with a loss value of "nan" (not a number) during training typically indicates a problem with the network training process. There might be several reasons for this behavior, such as invalid data, incorrect weight initialization, or an unstable learning rate.
+
+To troubleshoot this issue, I recommend checking the following:
+
+1. Check your input data and labels: Make sure that the data and labels are correctly loaded and preprocessed. Ensure there are no missing or corrupted values in your dataset.
+
+2. Verify weight initialization: If the weights are initialized with very large or very small values, it might lead to numerical instability during training. Consider using a proper weight initialization technique, such as Xavier or He initialization.
+
+3. Check learning rate and epochs: The learning rate and the number of epochs are crucial parameters for training a neural network. If the learning rate is too high, it can cause the loss to diverge. Try reducing the learning rate and see if it helps. Additionally, check if the number of epochs is appropriate for your dataset and model complexity.
+
+4. Check for numerical overflow: The sigmoid function can cause numerical overflow for very large or very small values. Consider using the `tanh` activation function instead, as it is less prone to numerical instability.
+
+5. Use proper loss function: Ensure that you are using the appropriate loss function for your task. For example, for multi-class classification tasks, you should use cross-entropy loss instead of mean squared error (MSE).
+
+6. Check for NaN or Inf values in the dataset: Inspect your dataset for NaN or Inf (infinite) values, as they can cause issues during training. Make sure there are no invalid values in your data.
+
+7. Implement gradient checking: You can implement gradient checking to verify that your backpropagation implementation is correct. This involves comparing the gradients computed numerically with those obtained from backpropagation.
+
+Once you've checked these aspects, you may be able to identify the root cause of the issue and resolve the problem with the "nan" loss. If you're still facing difficulties, feel free to share more details about your dataset, model architecture, and training process, and I'll be happy to assist further.
+
+# To Be Continued...
