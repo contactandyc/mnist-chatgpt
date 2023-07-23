@@ -141,7 +141,6 @@ void print_output(const char *title, float *o, int num) {
 
 void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs, float learning_rate) {
     int num_samples = data->num_inputs;
-    int num_targets = data->num_targets;
 
     for (int epoch = 0; epoch < epochs; epoch++) {
         float total_loss = 0.0;
@@ -220,7 +219,6 @@ void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs,
 
 void testModel(NeuralNetwork* model, InputAndTargets* data) {
     int num_samples = data->num_inputs;
-    int num_targets = data->num_targets;
     int correct_predictions = 0;
 
     for (int sample = 0; sample < num_samples; sample++) {
