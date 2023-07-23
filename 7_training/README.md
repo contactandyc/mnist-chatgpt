@@ -766,4 +766,6 @@ To troubleshoot this issue, I recommend checking the following:
 
 Once you've checked these aspects, you may be able to identify the root cause of the issue and resolve the problem with the "nan" loss. If you're still facing difficulties, feel free to share more details about your dataset, model architecture, and training process, and I'll be happy to assist further.
 
-# To Be Continued...
+# My Commentary
+
+At this point, I felt like some good old-fashioned debugging was in order.  The changes I made to help debug can be found on [this commit](https://github.com/contactandyc/mnist-chatgpt/commit/ecb5e12e30e152e40429d7ffa3d664748d7c3b83).  The primary bug that happened a few times was using num_targets in place of output_size.
