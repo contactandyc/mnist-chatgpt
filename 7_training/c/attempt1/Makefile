@@ -4,7 +4,7 @@ INCLUDES = -I.
 
 SRCS = main.c image_utils.c data_processing.c
 OBJS = $(SRCS:.c=.o)
-TARGET = training
+TARGET = train_and_test
 
 .PHONY: all clean
 

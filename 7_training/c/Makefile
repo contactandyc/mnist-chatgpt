@@ -1,10 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g
+CFLAGS = -Wall -Wextra -std=c99 -O3
 INCLUDES = -I.
 
 SRCS = main.c image_utils.c data_processing.c neural_network.c
 OBJS = $(SRCS:.c=.o)
-TARGET = training
+TARGET = train_and_test
 
 .PHONY: all clean
 

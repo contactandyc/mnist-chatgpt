@@ -131,13 +131,20 @@ void freeNeuralNetwork(NeuralNetwork* model) {
     free(model);
 }
 
+void print_output(const char *title, float *o, int num) {
+    printf("%s: [", title);
+    for (int i = 0; i < num; i++) {
+        printf("%.4f ", o[i]);
+    }
+    printf("]\n");
+}
+
 void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs, float learning_rate) {
     int num_samples = data->num_inputs;
     int num_targets = data->num_targets;
 
     // added to speed things up and to test
-    if(num_samples > 100)
-        num_samples = 100;
+    // num_samples = 5000;
 
     for (int epoch = 0; epoch < epochs; epoch++) {
         float total_loss = 0.0;
@@ -152,8 +159,12 @@ void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs,
 
             // Compute loss (mean squared error)
             float loss = 0.0;
-            for (int i = 0; i < num_targets; i++) {
+            for (int i = 0; i < model->output_size; i++) {
                 loss += (target[i] - output[i]) * (target[i] - output[i]);
+            }
+            if(isnan(loss) || isinf(loss)) {
+                print_output("output", output, model->output_size);
+                print_output("target", target, model->output_size);
             }
             total_loss += loss;
 
@@ -208,7 +219,7 @@ void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs,
         }
 
         // Compute and print the average loss for this epoch
-        total_loss /= num_samples;
+        total_loss /= num_samples;//  * model->output_size);
         printf("Epoch %d - Average Loss: %.6f\n", epoch + 1, total_loss);
     }
 }
@@ -217,7 +228,6 @@ void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs,
 void testModel(NeuralNetwork* model, InputAndTargets* data) {
     int num_samples = data->num_inputs;
     int num_targets = data->num_targets;
-
     int correct_predictions = 0;
 
     for (int sample = 0; sample < num_samples; sample++) {
@@ -225,10 +235,13 @@ void testModel(NeuralNetwork* model, InputAndTargets* data) {
         float* target = data->targets[sample];
 
         float* output = forwardPass(model, input);
+        // printf("sample %d\n", sample );
+        // print_output("output", output, model->output_size);
+        // print_output("target", target, model->output_size);
 
         // Find the index of the maximum value in the output (predicted class)
         int predicted_class = 0;
-        for (int i = 1; i < num_targets; i++) {
+        for (int i = 1; i < model->output_size; i++) {
             if (output[i] > output[predicted_class]) {
                 predicted_class = i;
             }
@@ -236,7 +249,7 @@ void testModel(NeuralNetwork* model, InputAndTargets* data) {
 
         // Find the index of the maximum value in the target (actual class)
         int actual_class = 0;
-        for (int i = 1; i < num_targets; i++) {
+        for (int i = 1; i < model->output_size; i++) {
             if (target[i] > target[actual_class]) {
                 actual_class = i;
             }
