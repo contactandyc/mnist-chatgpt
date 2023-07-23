@@ -157,3 +157,19 @@ First 10 targets: [0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.00000
 First 10 inputs: [0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 ]
 ```
 
+### [7_train_and_test](7_train_and_test)
+
+Introduces the neural_network.c/h.  Runs a train/test using the data
+
+```bash
+% ./train_and_test ../../data/train-images-idx3-ubyte ../../data/train-labels-idx1-ubyte ../../data/t10k-images-idx3-ubyte ../../data/t10k-labels-idx1-ubyte
+Epoch 1 - Average Loss: 0.328468
+Epoch 2 - Average Loss: 0.189782
+Epoch 3 - Average Loss: 0.159682
+...
+Epoch 27 - Average Loss: 0.053728
+Epoch 28 - Average Loss: 0.052497
+Epoch 29 - Average Loss: 0.051325
+Epoch 30 - Average Loss: 0.050209
+Test Accuracy: 96.67%
+```

@@ -766,6 +766,20 @@ To troubleshoot this issue, I recommend checking the following:
 
 Once you've checked these aspects, you may be able to identify the root cause of the issue and resolve the problem with the "nan" loss. If you're still facing difficulties, feel free to share more details about your dataset, model architecture, and training process, and I'll be happy to assist further.
 
-# My Commentary
+# My Commentary and Conclusion
 
 At this point, I felt like some good old-fashioned debugging was in order.  The changes I made to help debug can be found on [this commit](https://github.com/contactandyc/mnist-chatgpt/commit/ecb5e12e30e152e40429d7ffa3d664748d7c3b83).  The primary bug that happened a few times was using num_targets in place of output_size.
+
+```bash
+% ./train_and_test ../../data/train-images-idx3-ubyte ../../data/train-labels-idx1-ubyte ../../data/t10k-images-idx3-ubyte ../../data/t10k-labels-idx1-ubyte
+Epoch 1 - Average Loss: 0.328468
+Epoch 2 - Average Loss: 0.189782
+Epoch 3 - Average Loss: 0.159682
+...
+Epoch 27 - Average Loss: 0.053728
+Epoch 28 - Average Loss: 0.052497
+Epoch 29 - Average Loss: 0.051325
+Epoch 30 - Average Loss: 0.050209
+Test Accuracy: 96.67%
+```
+
