@@ -2,9 +2,9 @@ CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -g
 INCLUDES = -I.
 
-SRCS = main.c image_utils.c data_processing.c
+SRCS = main.c image_utils.c data_processing.c neural_network.c
 OBJS = $(SRCS:.c=.o)
-TARGET = use_floats
+TARGET = training
 
 .PHONY: all clean
 

@@ -88,3 +88,35 @@ void freeInputAndTargets(InputAndTargets *inputAndTargets) {
     }
     free(inputAndTargets->targets);
 }
+
+
+InputAndTargets loadInputAndTargets(const char *image_filename, const char *label_filename) {
+    // Combine image data with label response
+    ImageDataWithLabels dataWithLabels = combineImageDataWithLabels(image_filename, label_filename);
+
+    // Allocate memory for InputAndTargets structure
+    InputAndTargets inputAndTargets;
+    inputAndTargets.num_targets = dataWithLabels.num_targets;
+    inputAndTargets.num_inputs = dataWithLabels.num_images;
+    inputAndTargets.targets = (float **)malloc(inputAndTargets.num_targets * sizeof(float *));
+    inputAndTargets.inputs = (float **)malloc(inputAndTargets.num_inputs * sizeof(float *));
+    if (inputAndTargets.targets == NULL || inputAndTargets.inputs == NULL) {
+        fprintf(stderr, "Memory allocation error.\n");
+        exit(1);
+    }
+
+    // Convert targets to one-hot encoded floats
+    for (int i = 0; i < inputAndTargets.num_targets; i++) {
+        inputAndTargets.targets[i] = oneHotEncoding(dataWithLabels.targets[i]);
+    }
+
+    // Convert images to float arrays in the range [0, 1]
+    for (int i = 0; i < inputAndTargets.num_inputs; i++) {
+        inputAndTargets.inputs[i] = convertToFloat(dataWithLabels.images[i], dataWithLabels.num_rows * dataWithLabels.num_columns);
+    }
+
+    // Free memory used by ImageDataWithLabels structure
+    freeImageDataWithLabels(&dataWithLabels);
+
+    return inputAndTargets;
+}

@@ -24,4 +24,6 @@ InputAndTargets processImageDataWithLabels(ImageDataWithLabels dataWithLabels);
 // Function to free memory allocated for InputAndTargets structure
 void freeInputAndTargets(InputAndTargets *inputAndTargets);
 
+InputAndTargets loadInputAndTargets(const char *image_filename, const char *label_filename);
+
 #endif /* DATA_PROCESSING_H */
