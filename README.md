@@ -24,17 +24,18 @@ Test Accuracy: 96.67%
 
 The directory structure is as follows
 
-`data` a place for the data used within the project<br/>
-`1_reading_mnist_labels` shows how to use ChatGPT to generate a program to read the mnist label data and print it to the screen.</br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`c` a c version of `file_reader`<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`python` a python version of `file_reader`<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`go` a go version of `file_reader`<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`psuedocode` a non-running psuedocode version of `file_reader`<br/>
-`2_reading_mnist_images` shows how to use ChatGPT to generate a program to read the mnist image data and print it to the screen.</br>
-`3_load_train_test` create a structure which combines the images and the labels for training and testing.<br/>
-`4_one_hot_encoding` creates a function to convert the binary 0 to 9 to an array of floats using one hot encoding method.<br/>
-`5_convert_pixels_to_floats` converts 0..255 to 0..1 floats<br/>
-`6_use_floats` uses one hot encoding and the pixel conversion above to generate inputs and targets.<br/>
+[data](data) a place for the data used within the project<br/>
+[1_reading_mnist_labels](1_reading_mnist_labels) shows how to use ChatGPT to generate a program to read the mnist label data and print it to the screen.</br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[c](1_reading_mnist_labels/c) a c version of `file_reader`<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[python](1_reading_mnist_labels/python) a python version of `file_reader`<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[go](1_reading_mnist_labels/go) a go version of `file_reader`<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[psuedocode](1_reading_mnist_labels/psuedocode) a non-running psuedocode version of `file_reader`<br/>
+[2_reading_mnist_images](2_reading_mnist_images) shows how to use ChatGPT to generate a program to read the mnist image data and print it to the screen.</br>
+[3_load_train_test](3_load_train_test) create a structure which combines the images and the labels for training and testing.<br/>
+[4_one_hot_encoding](4_one_hot_encoding) creates a function to convert the binary 0 to 9 to an array of floats using one hot encoding method.<br/>
+[5_convert_pixels_to_floats](5_convert_pixels_to_floats) converts 0..255 to 0..1 floats<br/>
+[6_use_floats](6_use_floats) uses one hot encoding and the pixel conversion above to generate inputs and targets.<br/>
+[7_train_and_test](7_train_and_test) introduces the neural_network.c/h.  Runs a train/test using the data.<br/>
 
 ## details...
 
