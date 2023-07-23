@@ -135,10 +135,11 @@ void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs,
     int num_samples = data->num_inputs;
     int num_targets = data->num_targets;
 
-    // Training loop for the specified number of epochs
+    // added to speed things up and to test
+    if(num_samples > 100)
+        num_samples = 100;
+
     for (int epoch = 0; epoch < epochs; epoch++) {
-
-
         float total_loss = 0.0;
 
         // Loop through each input data sample
@@ -174,19 +175,24 @@ void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs,
             }
 
             // Compute output layer error and update weights
+            float* output_error = (float*)malloc(model->output_size * sizeof(float));
+            if (output_error == NULL) {
+                fprintf(stderr, "Memory allocation error.\n");
+                exit(1);
+            }
             for (int i = 0; i < model->output_size; i++) {
-                float output_error = (target[i] - output[i]) * output[i] * (1.0 - output[i]); // Derivative of sigmoid
+                output_error[i] = (target[i] - output[i]) * output[i] * (1.0 - output[i]); // Derivative of sigmoid
                 for (int j = 0; j < model->hidden_size; j++) {
-                    model->hidden_to_output_weights[j][i] += learning_rate * output_error * hidden_layer[j];
+                    model->hidden_to_output_weights[j][i] += learning_rate * output_error[i] * hidden_layer[j];
                 }
-                model->output_biases[i] += learning_rate * output_error;
+                model->output_biases[i] += learning_rate * output_error[i];
             }
 
             // Compute hidden layer error and update weights
             for (int i = 0; i < model->hidden_size; i++) {
                 float hidden_error = 0.0;
                 for (int j = 0; j < model->output_size; j++) {
-                    hidden_error += output_error * model->hidden_to_output_weights[i][j];
+                    hidden_error += output_error[j] * model->hidden_to_output_weights[i][j];
                 }
                 hidden_error *= hidden_layer[i] * (1.0 - hidden_layer[i]); // Derivative of sigmoid
                 for (int j = 0; j < model->input_size; j++) {
@@ -195,8 +201,9 @@ void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs,
                 model->hidden_biases[i] += learning_rate * hidden_error;
             }
 
-            // Free memory for hidden layer activations as they are no longer needed
+            // Free memory for hidden layer activations and output error as they are no longer needed
             free(hidden_layer);
+            free(output_error);
             free(output);
         }
 
@@ -205,6 +212,7 @@ void trainNeuralNetwork(NeuralNetwork* model, InputAndTargets* data, int epochs,
         printf("Epoch %d - Average Loss: %.6f\n", epoch + 1, total_loss);
     }
 }
+
 
 void testModel(NeuralNetwork* model, InputAndTargets* data) {
     int num_samples = data->num_inputs;
