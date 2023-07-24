@@ -1681,3 +1681,320 @@ void backwardPass(NeuralNetwork* network, float* target, float learning_rate) {
 ```
 Remember to include all the necessary headers, and also remember to free any allocated memory that is no longer needed to avoid memory leaks. The `vectorSubtract` function should now be updated to not modify the input arrays but instead return the result. The `backwardPass` function also needs to take care of properly deallocating `weight_gradients` after they are no longer needed.
 
+# My Commentary
+
+When making the change above, the only function affected was 
+
+```c
+float* vectorSubtract(float* a, float* b, int size) {
+    float* result = (float*)malloc(size * sizeof(float));
+    for (int i = 0; i < size; i++) {
+        result[i] = a[i] - b[i];
+    }
+    return result;
+}
+```
+
+from the old
+```c
+void vectorSubtract(float* a, float* b, int size, float learning_rate) {
+    for (int i = 0; i < size; i++) {
+        a[i] -= learning_rate * b[i];
+    }
+}
+```
+
+However, the function is called twice.  One time it expects learningRate and the other time it doesn't.
+
+I went ahead and added a new function which is similar to the old vectorSubtract renaming it to vectorSubtractWithLearningRate.
+
+```c
+void vectorSubtractWithLearningRate(float* a, float* b, int size, float learning_rate) {
+    for (int i = 0; i < size; i++) {
+        a[i] -= learning_rate * b[i];
+    }
+}
+```
+
+The neural_network.c code was updated
+
+```c
+    // Update weights and biases
+    matrixSubtract(layer->weights, weight_gradients, layer->size, layer->inputs_size, learning_rate);
+    vectorSubtract(layer->biases, bias_gradients, layer->size, learning_rate);
+```
+
+to
+
+```c
+    // Update weights and biases
+    matrixSubtract(layer->weights, weight_gradients, layer->size, layer->inputs_size, learning_rate);
+    vectorSubtractWithLearningRate(layer->biases, bias_gradients, layer->size, learning_rate);
+```
+
+and then am left with compiler errors in the train and test.
+
+# ChatGPT Prompt
+
+```
+With the following code
+
+typedef struct {
+    int size;
+    int inputs_size;
+    float* biases;
+    float** weights;
+    float* (*activation_function)(float*, int);
+    float* (*activation_derivative)(float*, int);
+    float* outputs;
+} Layer;
+
+typedef struct {
+    int num_layers;
+    Layer** layers;
+} NeuralNetwork;
+
+typedef struct {
+    int num_samples;
+    int input_size;
+    int output_size;
+    float** inputs;
+    float** outputs;
+} Dataset;
+
+...
+
+void train(NeuralNetwork* network, Dataset* data, int epochs, float learning_rate) {
+    for (int epoch = 0; epoch < epochs; epoch++) {
+        float total_loss = 0.0;
+        for (int i = 0; i < data->num_examples; i++) {
+            float* input = data->inputs[i];
+            float* target = data->targets[i];
+
+            // Forward pass: compute the output of the network
+            float* output = forwardPass(network, input);
+
+            // Compute the error of the output
+            float* error = calculateError(output, target, network->output_size);
+
+            // Backward pass: adjust the weights and biases of the network based on the error
+            backwardPass(network, error, learning_rate);
+
+            // Compute the total loss for this epoch
+            for (int j = 0; j < network->output_size; j++) {
+                total_loss += error[j] * error[j]; // MSE loss
+            }
+
+            // Clean up
+            free(output);
+            free(error);
+        }
+
+        total_loss /= data->num_examples;
+        printf("Epoch %d: loss = %.5f\n", epoch + 1, total_loss);
+    }
+}
+
+void test(NeuralNetwork* network, Dataset* data) {
+    int num_samples = data->num_inputs;
+    int num_targets = data->num_targets;
+
+    int correct_predictions = 0;
+
+    // Loop over each sample in the dataset
+    for (int sample = 0; sample < num_samples; sample++) {
+        float* input = data->inputs[sample];
+        float* target = data->targets[sample];
+
+        // Perform a forward pass through the network
+        float* output = forwardPass(network, input);
+
+        // Find the index of the maximum value in the output (predicted class)
+        int predicted_class = 0;
+        for (int i = 1; i < network->output_size; i++) {
+            if (output[i] > output[predicted_class]) {
+                predicted_class = i;
+            }
+        }
+
+        // Find the index of the maximum value in the target (actual class)
+        int actual_class = 0;
+        for (int i = 1; i < num_targets; i++) {
+            if (target[i] > target[actual_class]) {
+                actual_class = i;
+            }
+        }
+
+        // If the predicted class matches the actual class, increment the counter
+        if (predicted_class == actual_class) {
+            correct_predictions++;
+        }
+
+        free(output);
+    }
+
+    // Calculate and print the accuracy
+    float accuracy = (float)correct_predictions / num_samples * 100.0;
+    printf("Test Accuracy: %.2f%%\n", accuracy);
+}
+
+I get the following errors
+
+% gcc neural_network.c -c
+neural_network.c:96:35: error: no member named 'num_examples' in 'Dataset'; did you mean 'num_samples'?
+        for (int i = 0; i < data->num_examples; i++) {
+                                  ^~~~~~~~~~~~
+                                  num_samples
+./neural_network.h:22:9: note: 'num_samples' declared here
+    int num_samples;
+        ^
+neural_network.c:98:35: error: no member named 'targets' in 'Dataset'
+            float* target = data->targets[i];
+                            ~~~~  ^
+neural_network.c:104:68: error: no member named 'output_size' in 'NeuralNetwork'
+            float* error = calculateError(output, target, network->output_size);
+                                                          ~~~~~~~  ^
+neural_network.c:110:42: error: no member named 'output_size' in 'NeuralNetwork'
+            for (int j = 0; j < network->output_size; j++) {
+                                ~~~~~~~  ^
+neural_network.c:119:29: error: no member named 'num_examples' in 'Dataset'; did you mean 'num_samples'?
+        total_loss /= data->num_examples;
+                            ^~~~~~~~~~~~
+                            num_samples
+./neural_network.h:22:9: note: 'num_samples' declared here
+    int num_samples;
+        ^
+neural_network.c:125:29: error: no member named 'num_inputs' in 'Dataset'
+    int num_samples = data->num_inputs;
+                      ~~~~  ^
+neural_network.c:126:29: error: no member named 'num_targets' in 'Dataset'
+    int num_targets = data->num_targets;
+                      ~~~~  ^
+neural_network.c:133:31: error: no member named 'targets' in 'Dataset'
+        float* target = data->targets[sample];
+                        ~~~~  ^
+neural_network.c:140:38: error: no member named 'output_size' in 'NeuralNetwork'
+        for (int i = 1; i < network->output_size; i++) {
+                            ~~~~~~~  ^
+9 errors generated.
+
+
+Can you help?
+```
+
+# ChatGPT Response
+
+It seems that there are a few discrepancies between the definitions of your `Dataset` and `NeuralNetwork` structures and the usage in your `train` and `test` functions.
+
+Based on your structure definitions, `Dataset` should have `inputs` and `outputs`, not `targets`, and it uses `num_samples` rather than `num_examples` or `num_inputs`.
+
+In addition, the `NeuralNetwork` structure does not contain `output_size` based on the provided definition. The output size should be the size of the last layer in the network which can be obtained by `network->layers[network->num_layers - 1]->size`.
+
+Here are the corrected `train` and `test` functions:
+
+```c
+void train(NeuralNetwork* network, Dataset* data, int epochs, float learning_rate) {
+    for (int epoch = 0; epoch < epochs; epoch++) {
+        float total_loss = 0.0;
+        for (int i = 0; i < data->num_samples; i++) {
+            float* input = data->inputs[i];
+            float* target = data->outputs[i];
+
+            // Forward pass: compute the output of the network
+            float* output = forwardPass(network, input);
+
+            // Compute the error of the output
+            float* error = calculateError(output, target, network->layers[network->num_layers - 1]->size);
+
+            // Backward pass: adjust the weights and biases of the network based on the error
+            backwardPass(network, error, learning_rate);
+
+            // Compute the total loss for this epoch
+            for (int j = 0; j < network->layers[network->num_layers - 1]->size; j++) {
+                total_loss += error[j] * error[j]; // MSE loss
+            }
+
+            // Clean up
+            free(output);
+            free(error);
+        }
+
+        total_loss /= data->num_samples;
+        printf("Epoch %d: loss = %.5f\n", epoch + 1, total_loss);
+    }
+}
+
+void test(NeuralNetwork* network, Dataset* data) {
+    int num_samples = data->num_samples;
+    int num_targets = network->layers[network->num_layers - 1]->size;
+
+    int correct_predictions = 0;
+
+    // Loop over each sample in the dataset
+    for (int sample = 0; sample < num_samples; sample++) {
+        float* input = data->inputs[sample];
+        float* target = data->outputs[sample];
+
+        // Perform a forward pass through the network
+        float* output = forwardPass(network, input);
+
+        // Find the index of the maximum value in the output (predicted class)
+        int predicted_class = 0;
+        for (int i = 1; i < num_targets; i++) {
+            if (output[i] > output[predicted_class]) {
+                predicted_class = i;
+            }
+        }
+
+        // Find the index of the maximum value in the target (actual class)
+        int actual_class = 0;
+        for (int i = 1; i < num_targets; i++) {
+            if (target[i] > target[actual_class]) {
+                actual_class = i;
+            }
+        }
+
+        // If the predicted class matches the actual class, increment the counter
+        if (predicted_class == actual_class) {
+            correct_predictions++;
+        }
+
+        free(output);
+    }
+
+    // Calculate and print the accuracy
+    float accuracy = (float)correct_predictions / num_samples * 100.0;
+    printf("Test Accuracy: %.2f%%\n", accuracy);
+}
+```
+Please replace `calculateError` function with an appropriate one, as it is not included in the code you provided.
+
+# ChatGPT Prompt
+
+```
+Can you define calculateError for the above code?
+```
+
+# ChatGPT Output
+
+Certainly. In the context of neural networks, error calculation is usually performed as a loss function such as Mean Squared Error (MSE) or Cross-Entropy Loss.
+
+However, in your `train` function, it looks like you are using `calculateError` to simply calculate the difference between the network's output and the target output. In that case, we can define `calculateError` as a function that subtracts the target output from the network output:
+
+```c
+float* calculateError(float* output, float* target, int size) {
+    float* error = (float*)malloc(sizeof(float) * size);
+    for (int i = 0; i < size; i++) {
+        error[i] = output[i] - target[i];
+    }
+    return error;
+}
+```
+This function creates an array of the same size as the network output and target, and for each element, it subtracts the corresponding target value from the output value. The resulting array is returned. This function assumes that the `output` and `target` arrays are of the same size.
+
+This error calculation is a simple difference and is suitable for use with the Mean Squared Error loss that you are computing in the `train` function. If you are using a different loss function (like Cross-Entropy Loss for classification tasks), you would need to compute the derivative of that loss function here.
+
+# My Commentary
+
+The code compiles!  Writing this along with all of the code has taken approximately 3 hours so far.
+

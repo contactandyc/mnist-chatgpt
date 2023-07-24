@@ -22,6 +22,12 @@ void freeMatrix(float** matrix, int rows) {
     free(matrix);
 }
 
+void vectorSubtractWithLearningRate(float* a, float* b, int size, float learning_rate) {
+    for (int i = 0; i < size; i++) {
+        a[i] -= learning_rate * b[i];
+    }
+}
+
 float* vectorSubtract(float* a, float* b, int size) {
     float* result = (float*)malloc(size * sizeof(float));
     for (int i = 0; i < size; i++) {

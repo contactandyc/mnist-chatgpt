@@ -7,6 +7,7 @@ void matrixMultiply(float** mat1, float* mat2, float* result, int rows, int colu
 float* vectorAdd(float* A, float* B, int size);
 
 float* vectorSubtract(float* a, float* b, int size);
+void vectorSubtractWithLearningRate(float* a, float* b, int size, float learning_rate);
 float** outerProduct(float* a, float* b, int a_len, int b_len);
 void matrixSubtract(float** a, float** b, int rows, int cols, float learning_rate);
 float* matrixVectorMultiply(float** a, float* b, int a_rows, int a_cols);
