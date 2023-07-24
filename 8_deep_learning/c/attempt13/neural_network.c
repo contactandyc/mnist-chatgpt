@@ -5,9 +5,10 @@
 #include "neural_network.h"
 #include "matrix.h"
 
-NeuralNetwork* createNeuralNetwork() {
+NeuralNetwork* createNeuralNetwork(int input_size) {
     NeuralNetwork* network = malloc(sizeof(NeuralNetwork));
     network->num_layers = 0;
+    network->input_size = input_size; // set input_size
     network->layers = NULL;
     return network;
 }
@@ -35,7 +36,14 @@ float** createRandomMatrix(int rows, int cols) {
 
 Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int)) {
     Layer* layer = (Layer*)malloc(sizeof(Layer));
-    int inputs_size = network->layers[network->num_layers-1]->size;
+    int inputs_size;
+    if (network->num_layers == 0) {
+        inputs_size = network->input_size;
+    } else {
+        inputs_size = network->layers[network->num_layers-1]->size;
+    }
+
+    // Initialize the layer
     layer->size = size;
     layer->inputs_size = inputs_size;
     layer->biases = createRandomArray(size);
@@ -44,8 +52,13 @@ Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_funct
     layer->activation_derivative = activation_derivative;
     layer->outputs = (float*)calloc(size, sizeof(float));
 
+    // Reallocate memory for the layers array
+    network->layers = realloc(network->layers, sizeof(Layer*) * (network->num_layers + 1));
+
+    // Add the new layer to the network
     network->layers[network->num_layers] = layer;
     network->num_layers++;
+
     return layer;
 }
 

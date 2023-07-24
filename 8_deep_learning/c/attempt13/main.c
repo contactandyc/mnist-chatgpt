@@ -21,11 +21,11 @@ int main(int argc, char *argv[]) {
 
     /* ChatGPT - please fill in the code here */
     // Create a new NeuralNetwork
-    NeuralNetwork* network = createNeuralNetwork();
+    NeuralNetwork* network = createNeuralNetwork(784);
 
     // Set learning rate and epochs
     float learning_rate = 0.01; // TODO: Adjust as needed
-    int epochs = 100; // TODO: Adjust as needed
+    int epochs = 5; // TODO: Adjust as needed
 
     // Set the dataset sizes
     Dataset training_dataset = {

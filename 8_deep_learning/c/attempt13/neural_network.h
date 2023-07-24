@@ -15,6 +15,7 @@ typedef struct {
 
 typedef struct {
     int num_layers;
+    int input_size; // new field
     Layer** layers;
 } NeuralNetwork;
 
@@ -28,7 +29,7 @@ typedef struct {
 
 float randFloat();
 
-NeuralNetwork* createNeuralNetwork();
+NeuralNetwork* createNeuralNetwork(int input_size);
 Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int));
 // void forwardPass(NeuralNetwork* network, float* input);
 // float calculateError(NeuralNetwork* network, float* target);

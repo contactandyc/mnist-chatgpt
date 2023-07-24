@@ -2486,3 +2486,197 @@ NeuralNetwork* network = createNeuralNetwork(784); // replace 784 with your actu
 
 Remember that when adding layers, the `inputs_size` of a layer is determined by the `size` of the previous layer. This means you cannot add a new layer after you've started processing inputs through the network, because the input size for the new layer would not match the size of the previous layer's outputs. So make sure to add all your layers before you start the training or testing process.
 
+# ChatGPT Prompt
+
+The above code fixed the first problem, now there is a new one.
+
+```
+Now I'm getting the following problem
+
+ % lldb ./train_and_test ../../../data/train-images-idx3-ubyte ../../../data/train-labels-idx1-ubyte ../../../data/t10k-images-idx3-ubyte ../../../data/t10k-labels-idx1-ubyte
+(lldb) target create "./train_and_test"
+Current executable set to '/Users/ac/code/neural/8_deep_learning/c/attempt13/train_and_test' (x86_64).
+(lldb) settings set -- target.run-args  "../../../data/train-images-idx3-ubyte" "../../../data/train-labels-idx1-ubyte" "../../../data/t10k-images-idx3-ubyte" "../../../data/t10k-labels-idx1-ubyte"
+(lldb) r
+Process 56387 launched: '/Users/ac/code/neural/8_deep_learning/c/attempt13/train_and_test' (x86_64)
+Process 56387 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0x0)
+    frame #0: 0x000000010000374e train_and_test`addDenseLayer(network=0x0000600000004030, size=128, activation_function=(train_and_test`relu at activation.c:7), activation_derivative=(train_and_test`reluDerivative at activation.c:16)) at neural_network.c:53:42
+   50  	    layer->activation_derivative = activation_derivative;
+   51  	    layer->outputs = (float*)calloc(size, sizeof(float));
+   52  	
+-> 53  	    network->layers[network->num_layers] = layer;
+   54  	    network->num_layers++;
+   55  	    return layer;
+   56  	}
+Target 0: (train_and_test) stopped.
+(lldb)
+```
+
+# ChatGPT Output
+
+The error you're encountering is a segmentation fault (`EXC_BAD_ACCESS`), which typically means you're trying to access memory that you haven't allocated or that you don't have permission to access.
+
+The issue appears to be related to how you're adding layers to your `NeuralNetwork`. When you create your `NeuralNetwork` structure, `network->layers` is initialized as `NULL`. However, in your `addDenseLayer` function, you're trying to directly assign to `network->layers[network->num_layers]`, but you haven't allocated memory for this pointer array.
+
+To solve this, you'll need to reallocate memory for `network->layers` each time you add a new layer. Here's how you can do it:
+
+```c
+Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int)) {
+    Layer* layer = (Layer*)malloc(sizeof(Layer));
+    int inputs_size;
+    if (network->num_layers == 0) {
+        inputs_size = network->input_size; 
+    } else {
+        inputs_size = network->layers[network->num_layers-1]->size;
+    }
+
+    // Initialize the layer
+    layer->size = size;
+    layer->inputs_size = inputs_size;
+    layer->biases = createRandomArray(size);
+    layer->weights = createRandomMatrix(size, inputs_size);
+    layer->activation_function = activation_function;
+    layer->activation_derivative = activation_derivative;
+    layer->outputs = (float*)calloc(size, sizeof(float));
+
+    // Reallocate memory for the layers array
+    network->layers = realloc(network->layers, sizeof(Layer*) * (network->num_layers + 1));
+
+    // Add the new layer to the network
+    network->layers[network->num_layers] = layer;
+    network->num_layers++;
+
+    return layer;
+}
+```
+
+This change uses the `realloc` function to allocate more space for the `layers` array each time a new layer is added. Note that `realloc` will copy the existing elements to the new memory location if it can't extend the current one, so the pointers in your existing layers will still be valid after you add a new layer.
+
+Also, be aware that `realloc` returns `NULL` if the allocation fails. In a production code, you would want to check the result of `realloc` and handle any memory allocation failures appropriately.
+
+# ChatGPT Prompt
+
+Again, that fixed the next problem
+
+```
+Now I have a new problem in the following code
+
+void train(NeuralNetwork* network, Dataset* data, int epochs, float learning_rate) {
+    for (int epoch = 0; epoch < epochs; epoch++) {
+        float total_loss = 0.0;
+        for (int i = 0; i < data->num_samples; i++) {
+            float* input = data->inputs[i];
+            float* target = data->outputs[i];
+
+            // Forward pass: compute the output of the network
+            float* output = forwardPass(network, input);
+
+            // Compute the error of the output
+            float* error = calculateError(output, target, network->layers[network->num_layers - 1]->size);
+
+            // Backward pass: adjust the weights and biases of the network based on the error
+            backwardPass(network, error, learning_rate);
+
+            // Compute the total loss for this epoch
+            for (int j = 0; j < network->layers[network->num_layers - 1]->size; j++) {
+                total_loss += error[j] * error[j]; // MSE loss
+            }
+
+            // Clean up
+            free(output);
+            free(error);
+        }
+
+        total_loss /= data->num_samples;
+        printf("Epoch %d: loss = %.5f\n", epoch + 1, total_loss);
+    }
+}
+
+When epoch equals zero and i equals 1, the following error happens in lldb
+
+% lldb ./train_and_test ../../../data/train-images-idx3-ubyte ../../../data/train-labels-idx1-ubyte ../../../data/t10k-images-idx3-ubyte ../../../data/t10k-labels-idx1-ubyte
+(lldb) target create "./train_and_test"
+Current executable set to '/Users/ac/code/neural/8_deep_learning/c/attempt13/train_and_test' (x86_64).
+(lldb) settings set -- target.run-args  "../../../data/train-images-idx3-ubyte" "../../../data/train-labels-idx1-ubyte" "../../../data/t10k-images-idx3-ubyte" "../../../data/t10k-labels-idx1-ubyte"
+(lldb) r
+Process 56428 launched: '/Users/ac/code/neural/8_deep_learning/c/attempt13/train_and_test' (x86_64)
+train_and_test(56428,0x7ff848c26640) malloc: Heap corruption detected, free list is damaged at 0x600000ec4e40
+*** Incorrect guard value: 13924674297050711670
+train_and_test(56428,0x7ff848c26640) malloc: *** set a breakpoint in malloc_error_break to debug
+Process 56428 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = signal SIGABRT
+    frame #0: 0x00007ff8055121f2 libsystem_kernel.dylib`__pthread_kill + 10
+libsystem_kernel.dylib`:
+->  0x7ff8055121f2 <+10>: jae    0x7ff8055121fc            ; <+20>
+    0x7ff8055121f4 <+12>: movq   %rax, %rdi
+    0x7ff8055121f7 <+15>: jmp    0x7ff80550bcdb            ; cerror_nocancel
+    0x7ff8055121fc <+20>: retq   
+Target 0: (train_and_test) stopped.
+(lldb) up
+frame #1: 0x00007ff805549ee6 libsystem_pthread.dylib`pthread_kill + 263
+libsystem_pthread.dylib`pthread_kill:
+->  0x7ff805549ee6 <+263>: movl   %eax, %r15d
+    0x7ff805549ee9 <+266>: cmpl   $-0x1, %eax
+    0x7ff805549eec <+269>: jne    0x7ff805549f36            ; <+343>
+    0x7ff805549eee <+271>: movq   %gs:0x8, %rax
+(lldb) 
+frame #2: 0x00007ff805470b45 libsystem_c.dylib`abort + 123
+libsystem_c.dylib`abort:
+->  0x7ff805470b45 <+123>: movl   $0x2710, %edi             ; imm = 0x2710 
+    0x7ff805470b4a <+128>: callq  0x7ff805444c3c            ; usleep$NOCANCEL
+    0x7ff805470b4f <+133>: callq  0x7ff805470b54            ; __abort
+
+libsystem_c.dylib`:
+    0x7ff805470b54 <+0>:   pushq  %rbp
+(lldb) 
+frame #3: 0x00007ff805387752 libsystem_malloc.dylib`malloc_vreport + 888
+libsystem_malloc.dylib`malloc_vreport:
+->  0x7ff805387752 <+888>: callq  0x7ff80539d47e            ; symbol stub for: __stack_chk_fail
+
+libsystem_malloc.dylib`has_default_zone0:
+    0x7ff805387757 <+0>:   movzbl 0x41b28962(%rip), %eax    ; has_injected_zone0
+    0x7ff80538775e <+7>:   xorl   $0x1, %eax
+    0x7ff805387761 <+10>:  retq   
+(lldb) 
+frame #4: 0x00007ff80539ca08 libsystem_malloc.dylib`malloc_zone_error + 183
+libsystem_malloc.dylib`malloc_zone_error:
+->  0x7ff80539ca08 <+183>: movq   0x41abddf1(%rip), %rax
+    0x7ff80539ca0f <+190>: movq   (%rax), %rax
+    0x7ff80539ca12 <+193>: cmpq   -0x8(%rbp), %rax
+    0x7ff80539ca16 <+197>: jne    0x7ff80539ca21            ; <+208>
+(lldb) 
+frame #5: 0x00007ff80539507c libsystem_malloc.dylib`nanov2_guard_corruption_detected + 34
+libsystem_malloc.dylib`nanov2_guard_corruption_detected:
+->  0x7ff80539507c <+34>: ud2    
+
+libsystem_malloc.dylib`nanov2_ptr_in_use_enumerator:
+    0x7ff80539507e <+0>:  pushq  %rbp
+    0x7ff80539507f <+1>:  movq   %rsp, %rbp
+    0x7ff805395082 <+4>:  pushq  %r15
+(lldb) 
+frame #6: 0x00007ff80539437f libsystem_malloc.dylib`nanov2_allocate_outlined + 385
+libsystem_malloc.dylib`nanov2_allocate_outlined:
+->  0x7ff80539437f <+385>: nop    
+    0x7ff805394380 <+386>: nop    
+    0x7ff805394381 <+387>: nop    
+    0x7ff805394382 <+388>: nop    
+(lldb) 
+frame #7: 0x00007ff80537a168 libsystem_malloc.dylib`nanov2_malloc + 529
+libsystem_malloc.dylib`nanov2_malloc:
+->  0x7ff80537a168 <+529>: addq   $0x10, %rsp
+    0x7ff80537a16c <+533>: movq   %rax, %r11
+    0x7ff80537a16f <+536>: movq   %r11, %rax
+    0x7ff80537a172 <+539>: addq   $0x38, %rsp
+(lldb) 
+frame #8: 0x000000010000219c train_and_test`softmax(inputs=0x0000600000ec4e40, size=10) at activation.c:26:30
+   23  	
+   24  	// Softmax activation function
+   25  	float* softmax(float* inputs, int size) {
+-> 26  	    float* outputs = (float*)malloc(size * sizeof(float));
+   27  	    float max = inputs[0];
+   28  	    float sum = 0.0f;
+   29  	
+(lldb)
+
+```
