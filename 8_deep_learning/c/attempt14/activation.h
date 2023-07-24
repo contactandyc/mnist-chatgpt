@@ -2,19 +2,19 @@
 #define _ACTIVATION_H
 
 // ReLU activation function
-float* relu(float* inputs, int size);
+void relu(float* inputs, int size);
 
 // Derivative of ReLU activation function
-float* reluDerivative(float* inputs, int size);
+void reluDerivative(float* inputs, int size);
 
 // Softmax activation function
-float* softmax(float* inputs, int size);
+void softmax(float* inputs, int size);
 
 // Derivative of Softmax activation function
 // Note: This derivative is not the true mathematical derivative of softmax.
 // However, in the context of backpropagation for the output layer with cross-entropy loss,
 // this derivative is correct as the loss and softmax derivative get simplified in a way that we only need to
 // subtract the target output from the network's output.
-float* softmaxDerivative(float* inputs, int size);
+void softmaxDerivative(float* inputs, int size);
 
 #endif /* _ACTIVATION_H */

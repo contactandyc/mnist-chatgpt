@@ -4,26 +4,21 @@
 #include <math.h>
 
 // ReLU activation function
-float* relu(float* inputs, int size) {
-    float* outputs = (float*)malloc(size * sizeof(float));
+void relu(float* inputs, int size) {
     for (int i = 0; i < size; i++) {
-        outputs[i] = inputs[i] > 0 ? inputs[i] : 0;
+        inputs[i] = inputs[i] > 0 ? inputs[i] : 0;
     }
-    return outputs;
 }
 
 // Derivative of ReLU activation function
-float* reluDerivative(float* inputs, int size) {
-    float* outputs = (float*)malloc(size * sizeof(float));
+void reluDerivative(float* inputs, int size) {
     for (int i = 0; i < size; i++) {
-        outputs[i] = inputs[i] > 0 ? 1.0f : 0.0f;
+        inputs[i] = inputs[i] > 0 ? 1.0f : 0.0f;
     }
-    return outputs;
 }
 
 // Softmax activation function
-float* softmax(float* inputs, int size) {
-    float* outputs = (float*)malloc(size * sizeof(float));
+void softmax(float* inputs, int size) {
     float max = inputs[0];
     float sum = 0.0f;
 
@@ -36,15 +31,13 @@ float* softmax(float* inputs, int size) {
 
     // Compute softmax values
     for (int i = 0; i < size; i++) {
-        outputs[i] = exp(inputs[i] - max);
-        sum += outputs[i];
+        inputs[i] = exp(inputs[i] - max);
+        sum += inputs[i];
     }
 
     for (int i = 0; i < size; i++) {
-        outputs[i] /= sum;
+        inputs[i] /= sum;
     }
-
-    return outputs;
 }
 
 // Derivative of Softmax activation function
@@ -52,10 +45,8 @@ float* softmax(float* inputs, int size) {
 // However, in the context of backpropagation for the output layer with cross-entropy loss,
 // this derivative is correct as the loss and softmax derivative get simplified in a way that we only need to
 // subtract the target output from the network's output.
-float* softmaxDerivative(float* inputs, int size) {
-    float* outputs = (float*)malloc(size * sizeof(float));
-    for (int i = 0; i < size; i++) {
-        outputs[i] = inputs[i];
-    }
-    return outputs;
+void softmaxDerivative(float* inputs, int size) {
+    (void)(inputs);
+    (void)(size);
+    // do nothing at all
 }
