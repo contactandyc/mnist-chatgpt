@@ -1998,3 +1998,491 @@ This error calculation is a simple difference and is suitable for use with the M
 
 The code compiles!  Writing this along with all of the code has taken approximately 3 hours so far.
 
+Looking over the code, I notice that backwardPass has a signature of 
+
+```
+void backwardPass(NeuralNetwork* network, float* target, float learning_rate);
+```
+
+and it is called like
+
+```
+    // Compute the error of the output
+    float* error = calculateError(output, target, network->layers[network->num_layers - 1]->size);
+
+    // Backward pass: adjust the weights and biases of the network based on the error
+    backwardPass(network, error, learning_rate);
+```
+
+Perhaps backwardPass should be expecting an error instead of target.  Asking ChatGPT
+
+# ChatGPT Prompt
+
+```
+The backwardPass function takes a second parameter target and train is passing error.  Is this correct?
+
+void backwardPass(NeuralNetwork* network, float* target, float learning_rate) {
+    Layer* output_layer = network->layers[network->num_layers-1];
+    // Compute the error derivative of the output layer
+    float* output_error = vectorSubtract(output_layer->outputs, target, output_layer->size);
+    for (int i = network->num_layers-1; i >= 0; i--) {
+        Layer* layer = network->layers[i];
+        float* layer_inputs = i == 0 ? output_layer->outputs : network->layers[i-1]->outputs;  // modified line
+
+        // Compute the derivative of the error with respect to weights and biases
+        float** weight_gradients = outerProduct(output_error, layer_inputs, layer->size, layer->inputs_size);
+        float* bias_gradients = output_error;
+
+        // Update weights and biases
+        matrixSubtract(layer->weights, weight_gradients, layer->size, layer->inputs_size, learning_rate);
+        vectorSubtractWithLearningRate(layer->biases, bias_gradients, layer->size, learning_rate);
+
+        if (i != 0) {
+            // Compute the error derivative for the next lower layer
+            output_error = matrixVectorMultiply(transpose(layer->weights, layer->size, layer->inputs_size), output_error, layer->inputs_size, layer->size);
+            output_error = elementwiseMultiply(output_error, layer->activation_derivative(layer_inputs, layer->inputs_size), layer->inputs_size);
+        }
+    }
+}
+
+void train(NeuralNetwork* network, Dataset* data, int epochs, float learning_rate) {
+    for (int epoch = 0; epoch < epochs; epoch++) {
+        float total_loss = 0.0;
+        for (int i = 0; i < data->num_samples; i++) {
+            float* input = data->inputs[i];
+            float* target = data->outputs[i];
+
+            // Forward pass: compute the output of the network
+            float* output = forwardPass(network, input);
+
+            // Compute the error of the output
+            float* error = calculateError(output, target, network->layers[network->num_layers - 1]->size);
+
+            // Backward pass: adjust the weights and biases of the network based on the error
+            backwardPass(network, error, learning_rate);
+
+            // Compute the total loss for this epoch
+            for (int j = 0; j < network->layers[network->num_layers - 1]->size; j++) {
+                total_loss += error[j] * error[j]; // MSE loss
+            }
+
+            // Clean up
+            free(output);
+            free(error);
+        }
+
+        total_loss /= data->num_samples;
+        printf("Epoch %d: loss = %.5f\n", epoch + 1, total_loss);
+    }
+}
+```
+
+# ChatGPT Output
+
+Yes, you're correct, and that's a good observation.
+
+In your backward pass function, the second parameter `target` is expected to be the target outputs of your dataset, but what you're actually passing is the `error` calculated as the difference between the network's output and the target. This discrepancy can lead to unexpected results.
+
+To resolve this issue, you might want to reconsider the parameter list of your `backwardPass` function. In the specific case of your code, it might make more sense to rename `target` to `error` in the `backwardPass` function. And remember to update the following line accordingly:
+
+```c
+float* output_error = vectorSubtract(output_layer->outputs, target, output_layer->size);
+```
+
+to
+
+```c
+float* output_error = error;
+```
+
+as `error` is already the difference between the network's outputs and the target outputs. Therefore, you don't need to subtract them again.
+
+# My Commentary
+
+My suspicion was correct.  Next, we will merge the work from 7_neural_networks.
+
+# ChatGPT Prompt
+
+```
+Given a data_processing.h file that looks like
+
+
+#ifndef DATA_PROCESSING_H
+#define DATA_PROCESSING_H
+
+typedef struct {
+    int num_targets;
+    float **targets;
+    int num_inputs;
+    float **inputs;
+} InputAndTargets;
+
+InputAndTargets loadInputAndTargets(const char *image_filename, const char *label_filename);
+void freeInputAndTargets(InputAndTargets *inputAndTargets);
+
+#endif /* DATA_PROCESSING_H */
+
+and a neural_network.h file that looks like
+
+#ifndef NEURAL_NETWORK_H
+#define NEURAL_NETWORK_H
+
+#include <stdlib.h>
+
+typedef struct {
+    int size;
+    int inputs_size;
+    float* biases;
+    float** weights;
+    float* (*activation_function)(float*, int);
+    float* (*activation_derivative)(float*, int);
+    float* outputs;
+} Layer;
+
+typedef struct {
+    int num_layers;
+    Layer** layers;
+} NeuralNetwork;
+
+typedef struct {
+    int num_samples;
+    int input_size;
+    int output_size;
+    float** inputs;
+    float** outputs;
+} Dataset;
+
+float randFloat();
+
+NeuralNetwork* createNeuralNetwork();
+Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int));
+// void forwardPass(NeuralNetwork* network, float* input);
+// float calculateError(NeuralNetwork* network, float* target);
+// void backwardPass(NeuralNetwork* network, float* target, float learning_rate);
+void train(NeuralNetwork* network, Dataset* data, int epochs, float learning_rate);
+void test(NeuralNetwork* network, Dataset* data);
+
+#endif /* NEURAL_NETWORK_H */
+
+and a main.c that looks like
+
+#include <stdio.h>
+#include <stdlib.h>
+#include "data_processing.h"
+#include "neural_network.h"
+
+int main(int argc, char *argv[]) {
+    if (argc < 5) {
+        printf("Usage: %s <train_image_filename> <train_label_filename> <test_image_filename> <test_label_filename>\n", argv[0]);
+        return 1;
+    }
+
+    const char *train_image_filename = argv[1];
+    const char *train_label_filename = argv[2];
+    const char *test_image_filename = argv[3];
+    const char *test_label_filename = argv[4];
+
+    // Load input and target data
+    InputAndTargets training_data = loadInputAndTargets(train_image_filename, train_label_filename);
+    InputAndTargets test_data = loadInputAndTargets(test_image_filename, test_label_filename);
+
+    /* ChatGPT - please fill in the code here */
+    
+    freeInputAndTargets(&training_data);
+    freeInputAndTargets(&test_data);
+
+    return 0;
+}
+
+fill in the code to test and train the model.  If there are any parameters that I've not specified, use constants with a comment suggesting that they need changed.
+
+```
+
+# ChatGTP Output
+
+Here's the code to create, train, and test the neural network model:
+
+```c
+    // Create a new NeuralNetwork
+    NeuralNetwork* network = createNeuralNetwork();
+
+    // Set learning rate and epochs
+    float learning_rate = 0.01; // TODO: Adjust as needed
+    int epochs = 100; // TODO: Adjust as needed
+
+    // Set the dataset sizes
+    Dataset training_dataset = {
+        .num_samples = training_data.num_inputs,
+        .input_size = /* TODO: Specify the size of your input data */, 
+        .output_size = /* TODO: Specify the size of your output data */,
+        .inputs = training_data.inputs,
+        .outputs = training_data.targets
+    };
+    Dataset test_dataset = {
+        .num_samples = test_data.num_inputs,
+        .input_size = /* TODO: Specify the size of your input data */, 
+        .output_size = /* TODO: Specify the size of your output data */,
+        .inputs = test_data.inputs,
+        .outputs = test_data.targets
+    };
+
+    // Add Dense Layers to the network
+    // You can add as many layers as needed and specify the activation function for each layer.
+    // For this example, I'm assuming you're using two layers: 
+    // the first one with a size of 128 and the second one (output layer) with a size of 10 (if you're classifying digits, for instance).
+    // I'm also assuming you're using a ReLU activation for the first layer and a Softmax for the output layer.
+    // You'll have to implement the corresponding functions: relu, reluDerivative, softmax, softmaxDerivative.
+    addDenseLayer(network, 128, relu, reluDerivative);
+    addDenseLayer(network, 10, softmax, softmaxDerivative); // If you're classifying digits, the output layer size should be 10.
+
+    // Train the Neural Network
+    train(network, &training_dataset, epochs, learning_rate);
+
+    // Test the Neural Network
+    test(network, &test_dataset);
+    
+    // Don't forget to free your network when you're done
+    /* TODO: Implement the freeNeuralNetwork function if not implemented */
+    freeNeuralNetwork(network);
+```
+
+This code should work as expected if you have correctly implemented all the functions being called. I have left some placeholders (preceded by `TODO`) for you to fill out based on your specific needs, such as the input and output size, the learning rate and the number of epochs. The `relu`, `reluDerivative`, `softmax`, `softmaxDerivative` and `freeNeuralNetwork` functions need to be defined or replaced if you're using other activation functions or need different memory management.
+
+# ChatGPT Prompt
+
+```
+can you implement the relu, reluDerivative, softmax, and softmaxDerivative functions?
+```
+
+# ChatGPT Output
+
+Sure, here are basic implementations of the requested functions in C. Please note that these functions are designed to operate on arrays of float values:
+
+```c
+#include <math.h>
+
+// ReLU activation function
+float* relu(float* inputs, int size) {
+    float* outputs = (float*)malloc(size * sizeof(float));
+    for (int i = 0; i < size; i++) {
+        outputs[i] = inputs[i] > 0 ? inputs[i] : 0;
+    }
+    return outputs;
+}
+
+// Derivative of ReLU activation function
+float* reluDerivative(float* inputs, int size) {
+    float* outputs = (float*)malloc(size * sizeof(float));
+    for (int i = 0; i < size; i++) {
+        outputs[i] = inputs[i] > 0 ? 1.0f : 0.0f;
+    }
+    return outputs;
+}
+
+// Softmax activation function
+float* softmax(float* inputs, int size) {
+    float* outputs = (float*)malloc(size * sizeof(float));
+    float max = inputs[0];
+    float sum = 0.0f;
+
+    // Find maximum element to avoid overflow during exponentiation
+    for (int i = 0; i < size; i++) {
+        if (inputs[i] > max) {
+            max = inputs[i];
+        }
+    }
+
+    // Compute softmax values
+    for (int i = 0; i < size; i++) {
+        outputs[i] = exp(inputs[i] - max);
+        sum += outputs[i];
+    }
+
+    for (int i = 0; i < size; i++) {
+        outputs[i] /= sum;
+    }
+
+    return outputs;
+}
+
+// Derivative of Softmax activation function
+// Note: This derivative is not the true mathematical derivative of softmax. 
+// However, in the context of backpropagation for the output layer with cross-entropy loss, 
+// this derivative is correct as the loss and softmax derivative get simplified in a way that we only need to 
+// subtract the target output from the network's output.
+float* softmaxDerivative(float* inputs, int size) {
+    float* outputs = (float*)malloc(size * sizeof(float));
+    for (int i = 0; i < size; i++) {
+        outputs[i] = inputs[i];
+    }
+    return outputs;
+}
+```
+Remember to free the memory allocated for the outputs when you're done using these arrays. These functions apply the operations element-wise to the inputs and return the resulting array.
+
+Also, note that the softmax derivative isn't the true derivative of the softmax function. However, during backpropagation in a neural network with a softmax output layer and cross-entropy loss, the derivative of the loss function with respect to the inputs to the softmax simplifies in such a way that the result is simply the network's output minus the target output. This is why the `softmaxDerivative` function simply returns a copy of its input.
+
+# My Commentary
+
+I put the activation functions in activation.c/h and included it into the main.c.  In attempt12, I get the following error.
+
+```bash
+% make
+gcc -Wall -Wextra -std=c99 -g -I. -c main.c -o main.o
+gcc -Wall -Wextra -std=c99 -g -I. -c activation.c -o activation.o
+gcc -Wall -Wextra -std=c99 -g -I. -c matrix.c -o matrix.o
+gcc -Wall -Wextra -std=c99 -g -I. -c image_utils.c -o image_utils.o
+gcc -Wall -Wextra -std=c99 -g -I. -c data_processing.c -o data_processing.o
+gcc -Wall -Wextra -std=c99 -g -I. -c neural_network.c -o neural_network.o
+gcc -Wall -Wextra -std=c99 -g -I. -o train_and_test main.o activation.o matrix.o image_utils.o data_processing.o neural_network.o
+% lldb ./train_and_test ../../../data/train-images-idx3-ubyte ../../../data/train-labels-idx1-ubyte ../../../data/t10k-images-idx3-ubyte ../../../data/t10k-labels-idx1-ubyte
+(lldb) target create "./train_and_test"
+Current executable set to '/Users/ac/code/neural/8_deep_learning/c/attempt12/train_and_test' (x86_64).
+(lldb) settings set -- target.run-args  "../../../data/train-images-idx3-ubyte" "../../../data/train-labels-idx1-ubyte" "../../../data/t10k-images-idx3-ubyte" "../../../data/t10k-labels-idx1-ubyte"
+(lldb) r
+Process 56208 launched: '/Users/ac/code/neural/8_deep_learning/c/attempt12/train_and_test' (x86_64)
+Process 56208 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0xfffffffffffffff8)
+    frame #0: 0x00000001000036c9 train_and_test`addDenseLayer(network=0x0000600000008000, size=128, activation_function=(train_and_test`relu at activation.c:7), activation_derivative=(train_and_test`reluDerivative at activation.c:16)) at neural_network.c:38:23
+   35  	
+   36  	Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int)) {
+   37  	    Layer* layer = (Layer*)malloc(sizeof(Layer));
+-> 38  	    int inputs_size = network->layers[network->num_layers-1]->size;
+   39  	    layer->size = size;
+   40  	    layer->inputs_size = inputs_size;
+   41  	    layer->biases = createRandomArray(size);
+Target 0: (train_and_test) stopped.
+(lldb) 
+```
+
+# ChatGPT Prompt
+
+I could debug this myself, but thought it would be interesting to see what happens if I pass this to ChatGPT
+
+```
+I get the following error after building train_and_test
+
+% lldb ./train_and_test ../../../data/train-images-idx3-ubyte ../../../data/train-labels-idx1-ubyte ../../../data/t10k-images-idx3-ubyte ../../../data/t10k-labels-idx1-ubyte
+(lldb) target create "./train_and_test"
+Current executable set to '/Users/ac/code/neural/8_deep_learning/c/attempt12/train_and_test' (x86_64).
+(lldb) settings set -- target.run-args  "../../../data/train-images-idx3-ubyte" "../../../data/train-labels-idx1-ubyte" "../../../data/t10k-images-idx3-ubyte" "../../../data/t10k-labels-idx1-ubyte"
+(lldb) r
+Process 56208 launched: '/Users/ac/code/neural/8_deep_learning/c/attempt12/train_and_test' (x86_64)
+Process 56208 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0xfffffffffffffff8)
+    frame #0: 0x00000001000036c9 train_and_test`addDenseLayer(network=0x0000600000008000, size=128, activation_function=(train_and_test`relu at activation.c:7), activation_derivative=(train_and_test`reluDerivative at activation.c:16)) at neural_network.c:38:23
+   35  	
+   36  	Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int)) {
+   37  	    Layer* layer = (Layer*)malloc(sizeof(Layer));
+-> 38  	    int inputs_size = network->layers[network->num_layers-1]->size;
+   39  	    layer->size = size;
+   40  	    layer->inputs_size = inputs_size;
+   41  	    layer->biases = createRandomArray(size);
+Target 0: (train_and_test) stopped.
+(lldb) 
+
+Can you see what the error is given the following code and correct it?
+
+typedef struct {
+    int size;
+    int inputs_size;
+    float* biases;
+    float** weights;
+    float* (*activation_function)(float*, int);
+    float* (*activation_derivative)(float*, int);
+    float* outputs;
+} Layer;
+
+typedef struct {
+    int num_layers;
+    Layer** layers;
+} NeuralNetwork;
+
+NeuralNetwork* createNeuralNetwork() {
+    NeuralNetwork* network = malloc(sizeof(NeuralNetwork));
+    network->num_layers = 0;
+    network->layers = NULL;
+    return network;
+}
+
+float* createRandomArray(int size) {
+    srand(time(NULL)); // seed the random number generator with the current time
+    float* array = malloc(sizeof(float) * size);
+    for (int i = 0; i < size; i++) {
+        array[i] = ((float) rand() / (RAND_MAX)) - 0.5f; // generate a random float between -0.5 and 0.5
+    }
+    return array;
+}
+
+float** createRandomMatrix(int rows, int cols) {
+    srand(time(NULL)); // seed the random number generator with the current time
+    float** matrix = malloc(sizeof(float*) * rows);
+    for (int i = 0; i < rows; i++) {
+        matrix[i] = malloc(sizeof(float) * cols);
+        for (int j = 0; j < cols; j++) {
+            matrix[i][j] = ((float) rand() / (RAND_MAX)) - 0.5f; // generate a random float between -0.5 and 0.5
+        }
+    }
+    return matrix;
+}
+
+Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int)) {
+    Layer* layer = (Layer*)malloc(sizeof(Layer));
+    int inputs_size = network->layers[network->num_layers-1]->size;
+    layer->size = size;
+    layer->inputs_size = inputs_size;
+    layer->biases = createRandomArray(size);
+    layer->weights = createRandomMatrix(size, inputs_size);
+    layer->activation_function = activation_function;
+    layer->activation_derivative = activation_derivative;
+    layer->outputs = (float*)calloc(size, sizeof(float));
+
+    network->layers[network->num_layers] = layer;
+    network->num_layers++;
+    return layer;
+}
+
+```
+
+# ChatGPT Output
+
+The problem arises in the `addDenseLayer` function. When creating the first layer, `network->layers[network->num_layers-1]->size` is accessed, but `network->layers[network->num_layers-1]` doesn't exist because there are no layers yet in the network. So, when you're creating the first layer, you need a different way to determine `inputs_size`.
+
+The first layer's `inputs_size` would be the size of the input vector to the network. So, one solution is to pass the input size when creating the network, store it in the `NeuralNetwork` struct, and use this as the `inputs_size` for the first layer.
+
+Here are the changes you'd need to make:
+
+```c
+typedef struct {
+    int num_layers;
+    int input_size; // new field
+    Layer** layers;
+} NeuralNetwork;
+
+NeuralNetwork* createNeuralNetwork(int input_size) {
+    NeuralNetwork* network = malloc(sizeof(NeuralNetwork));
+    network->num_layers = 0;
+    network->input_size = input_size; // set input_size
+    network->layers = NULL;
+    return network;
+}
+
+Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int)) {
+    Layer* layer = (Layer*)malloc(sizeof(Layer));
+    int inputs_size;
+    if (network->num_layers == 0) {
+        inputs_size = network->input_size; // use input_size for the first layer
+    } else {
+        inputs_size = network->layers[network->num_layers-1]->size; // use the size of the previous layer for subsequent layers
+    }
+    // remaining code...
+}
+```
+Now, when you create the neural network in your `main` function, you'll need to provide the input size. This would typically be the size of your input vectors. For example, if you're working with 28x28 pixel images, your input size would be 784.
+
+```c
+NeuralNetwork* network = createNeuralNetwork(784); // replace 784 with your actual input size
+```
+
+Remember that when adding layers, the `inputs_size` of a layer is determined by the `size` of the previous layer. This means you cannot add a new layer after you've started processing inputs through the network, because the input size for the new layer would not match the size of the previous layer's outputs. So make sure to add all your layers before you start the training or testing process.
+

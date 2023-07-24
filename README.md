@@ -35,7 +35,7 @@ The directory structure is as follows
 [4_one_hot_encoding](4_one_hot_encoding) creates a function to convert the binary 0 to 9 to an array of floats using one hot encoding method.<br/>
 [5_convert_pixels_to_floats](5_convert_pixels_to_floats) converts 0..255 to 0..1 floats<br/>
 [6_use_floats](6_use_floats) uses one hot encoding and the pixel conversion above to generate inputs and targets.<br/>
-[7_train_and_test](7_train_and_test) introduces the neural_network.c/h.  Runs a train/test using the data.<br/>
+[7_train_and_test](7_neural_networks) introduces the neural_network.c/h.  Runs a train/test using the data.<br/>
 
 ## details...
 
@@ -180,7 +180,7 @@ First 10 targets: [0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.00000
 First 10 inputs: [0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 ]
 ```
 
-### [7_train_and_test](7_train_and_test)
+### [7_train_and_test](7_neural_networks)
 
 Introduces the neural_network.c/h.  Runs a train/test using the data
 
