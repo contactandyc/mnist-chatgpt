@@ -1,7 +1,9 @@
 #include "image_utils.h"
+#include "ac_allocator.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+
 
 // Function to read the file and extract the image data
 ImageData readImageFile(const char *filename) {
@@ -34,7 +36,7 @@ ImageData readImageFile(const char *filename) {
     }
 
     // Allocate memory for the array of image pixel data pointers
-    data.images = (uint8_t **)malloc(data.num_images * sizeof(uint8_t *));
+    data.images = (uint8_t **)ac_malloc(data.num_images * sizeof(uint8_t *));
     if (data.images == NULL) {
         fprintf(stderr, "Memory allocation error\n");
         fclose(file);
@@ -46,7 +48,7 @@ ImageData readImageFile(const char *filename) {
 
     // Read the pixel data for each image
     for (uint32_t i = 0; i < data.num_images; i++) {
-        data.images[i] = (uint8_t *)malloc(num_pixels * sizeof(uint8_t));
+        data.images[i] = (uint8_t *)ac_malloc(num_pixels * sizeof(uint8_t));
         if (data.images[i] == NULL) {
             fprintf(stderr, "Memory allocation error\n");
             fclose(file);
@@ -63,9 +65,9 @@ ImageData readImageFile(const char *filename) {
 // Function to free the memory allocated for image data
 void freeImageData(ImageData data) {
     for (uint32_t i = 0; i < data.num_images; i++) {
-        free(data.images[i]);
+        ac_free(data.images[i]);
     }
-    free(data.images);
+    ac_free(data.images);
 }
 
 LabelResponse readLabelResponse(const char* file_name) {
@@ -86,7 +88,7 @@ LabelResponse readLabelResponse(const char* file_name) {
     response.num_items = htonl(response.num_items); // Convert to big-endian if necessary
 
     // Allocate memory for the labels
-    response.labels = (unsigned char*)malloc(response.num_items * sizeof(unsigned char));
+    response.labels = (unsigned char*)ac_malloc(response.num_items * sizeof(unsigned char));
     if (response.labels == NULL) {
         printf("Memory allocation error.\n");
         fclose(file);
@@ -101,7 +103,7 @@ LabelResponse readLabelResponse(const char* file_name) {
 }
 
 void freeLabelResponse(LabelResponse *response) {
-    free(response->labels);
+    ac_free(response->labels);
 }
 
 // Function to combine image data with label response
@@ -125,7 +127,7 @@ ImageDataWithLabels combineImageDataWithLabels(const char *image_file, const cha
 
     // Allocate memory for the targets
     dataWithLabels.num_targets = labelResponse.num_items;
-    dataWithLabels.targets = (unsigned char *)malloc(dataWithLabels.num_targets * sizeof(unsigned char));
+    dataWithLabels.targets = (unsigned char *)ac_malloc(dataWithLabels.num_targets * sizeof(unsigned char));
     if (dataWithLabels.targets == NULL) {
         printf("Memory allocation error.\n");
         freeImageData(imageData);
@@ -156,6 +158,10 @@ ImageDataWithLabels combineImageDataWithLabels(const char *image_file, const cha
 
 // Function to free the memory allocated for ImageDataWithLabels structure
 void freeImageDataWithLabels(ImageDataWithLabels *dataWithLabels) {
-    free(dataWithLabels->targets);
+    ac_free(dataWithLabels->targets);
+    for (int i = 0; i < dataWithLabels->num_images; i++) {
+        ac_free(dataWithLabels->images[i]);
+    }
+    ac_free(dataWithLabels->images);
     // The pixel data pointers (dataWithLabels->images) are not freed here because they are already freed when calling freeImageData
 }

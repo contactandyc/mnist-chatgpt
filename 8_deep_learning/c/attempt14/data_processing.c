@@ -1,10 +1,11 @@
 #include "data_processing.h"
+#include "ac_allocator.h"
 #include <stdlib.h>
 
 // Function to convert pixel data to floating-point values in the range [0, 1]
 float* convertToFloat(uint8_t* pixels, size_t num_pixels) {
     // Allocate memory for the output array
-    float* floatPixels = (float*)malloc(num_pixels * sizeof(float));
+    float* floatPixels = (float*)ac_malloc(num_pixels * sizeof(float));
     if (floatPixels == NULL) {
         fprintf(stderr, "Memory allocation error.\n");
         exit(1);
@@ -22,7 +23,7 @@ float* convertToFloat(uint8_t* pixels, size_t num_pixels) {
 // Function to perform one-hot encoding for the input value
 float* oneHotEncoding(unsigned char input) {
     // Allocate memory for the output array
-    float *output = (float*)malloc(10 * sizeof(float));
+    float *output = (float*)ac_malloc(10 * sizeof(float));
     if (output == NULL) {
         fprintf(stderr, "Memory allocation error.\n");
         exit(1);
@@ -50,14 +51,14 @@ InputAndTargets processImageDataWithLabels(ImageDataWithLabels dataWithLabels) {
 
     // Allocate memory for the arrays in InputAndTargets
     inputAndTargets.num_inputs = dataWithLabels.num_images;
-    inputAndTargets.inputs = (float **)malloc(inputAndTargets.num_inputs * sizeof(float *));
+    inputAndTargets.inputs = (float **)ac_malloc(inputAndTargets.num_inputs * sizeof(float *));
     if (inputAndTargets.inputs == NULL) {
         fprintf(stderr, "Memory allocation error.\n");
         exit(1);
     }
 
     inputAndTargets.num_targets = dataWithLabels.num_images;
-    inputAndTargets.targets = (float **)malloc(inputAndTargets.num_targets * sizeof(float *));
+    inputAndTargets.targets = (float **)ac_malloc(inputAndTargets.num_targets * sizeof(float *));
     if (inputAndTargets.targets == NULL) {
         fprintf(stderr, "Memory allocation error.\n");
         exit(1);
@@ -79,14 +80,14 @@ InputAndTargets processImageDataWithLabels(ImageDataWithLabels dataWithLabels) {
 // Function to free memory allocated for InputAndTargets structure
 void freeInputAndTargets(InputAndTargets *inputAndTargets) {
     for (int i = 0; i < inputAndTargets->num_inputs; i++) {
-        free(inputAndTargets->inputs[i]);
+        ac_free(inputAndTargets->inputs[i]);
     }
-    free(inputAndTargets->inputs);
+    ac_free(inputAndTargets->inputs);
 
     for (int i = 0; i < inputAndTargets->num_targets; i++) {
-        free(inputAndTargets->targets[i]);
+        ac_free(inputAndTargets->targets[i]);
     }
-    free(inputAndTargets->targets);
+    ac_free(inputAndTargets->targets);
 }
 
 
@@ -98,8 +99,8 @@ InputAndTargets loadInputAndTargets(const char *image_filename, const char *labe
     InputAndTargets inputAndTargets;
     inputAndTargets.num_targets = dataWithLabels.num_targets;
     inputAndTargets.num_inputs = dataWithLabels.num_images;
-    inputAndTargets.targets = (float **)malloc(inputAndTargets.num_targets * sizeof(float *));
-    inputAndTargets.inputs = (float **)malloc(inputAndTargets.num_inputs * sizeof(float *));
+    inputAndTargets.targets = (float **)ac_malloc(inputAndTargets.num_targets * sizeof(float *));
+    inputAndTargets.inputs = (float **)ac_malloc(inputAndTargets.num_inputs * sizeof(float *));
     if (inputAndTargets.targets == NULL || inputAndTargets.inputs == NULL) {
         fprintf(stderr, "Memory allocation error.\n");
         exit(1);
