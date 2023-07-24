@@ -81,13 +81,14 @@ float* calculateError(float* output, float* target, int size) {
     return error;
 }
 
-void backwardPass(NeuralNetwork* network, float* error, float learning_rate) {
+void backwardPass(NeuralNetwork* network, float *input, float* error, float learning_rate) {
     Layer* output_layer = network->layers[network->num_layers-1];
     // Compute the error derivative of the output layer
     float* output_error = error;
     for (int i = network->num_layers-1; i >= 0; i--) {
         Layer* layer = network->layers[i];
-        float* layer_inputs = i == 0 ? output_layer->outputs : network->layers[i-1]->outputs;  // modified line
+        // float* layer_inputs = i == 0 ? output_layer->outputs : network->layers[i-1]->outputs;  // modified line
+        float* layer_inputs = i == 0 ? input : network->layers[i-1]->outputs;  // modified line
 
         // Compute the derivative of the error with respect to weights and biases
         float** weight_gradients = outerProduct(output_error, layer_inputs, layer->size, layer->inputs_size);
@@ -119,7 +120,7 @@ void train(NeuralNetwork* network, Dataset* data, int epochs, float learning_rat
             float* error = calculateError(output, target, network->layers[network->num_layers - 1]->size);
 
             // Backward pass: adjust the weights and biases of the network based on the error
-            backwardPass(network, error, learning_rate);
+            backwardPass(network, input, error, learning_rate);
 
             // Compute the total loss for this epoch
             for (int j = 0; j < network->layers[network->num_layers - 1]->size; j++) {
@@ -127,7 +128,7 @@ void train(NeuralNetwork* network, Dataset* data, int epochs, float learning_rat
             }
 
             // Clean up
-            free(output);
+            // free(output);
             free(error);
         }
 
@@ -171,7 +172,7 @@ void test(NeuralNetwork* network, Dataset* data) {
             correct_predictions++;
         }
 
-        free(output);
+        // free(output);
     }
 
     // Calculate and print the accuracy
