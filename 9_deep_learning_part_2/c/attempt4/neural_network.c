@@ -14,7 +14,7 @@ NeuralNetwork* createNeuralNetwork(int input_size) {
 }
 
 float* createRandomArray(int size) {
-    srand(time(NULL)); // seed the random number generator with the current time
+    // srand(time(NULL)); // seed the random number generator with the current time
     float* array = malloc(sizeof(float) * size);
     for (int i = 0; i < size; i++) {
         array[i] = ((float) rand() / (RAND_MAX)) - 0.5f; // generate a random float between -0.5 and 0.5
@@ -23,7 +23,7 @@ float* createRandomArray(int size) {
 }
 
 float** createRandomMatrix(int rows, int cols) {
-    srand(time(NULL)); // seed the random number generator with the current time
+    // srand(time(NULL)); // seed the random number generator with the current time
     float** matrix = malloc(sizeof(float*) * rows);
     for (int i = 0; i < rows; i++) {
         matrix[i] = malloc(sizeof(float) * cols);
@@ -82,12 +82,10 @@ float* calculateError(float* output, float* target, int size) {
 }
 
 void backwardPass(NeuralNetwork* network, float *input, float* error, float learning_rate) {
-    Layer* output_layer = network->layers[network->num_layers-1];
     // Compute the error derivative of the output layer
     float* output_error = error;
     for (int i = network->num_layers-1; i >= 0; i--) {
         Layer* layer = network->layers[i];
-        // float* layer_inputs = i == 0 ? output_layer->outputs : network->layers[i-1]->outputs;  // modified line
         float* layer_inputs = i == 0 ? input : network->layers[i-1]->outputs;  // modified line
 
         // Compute the derivative of the error with respect to weights and biases

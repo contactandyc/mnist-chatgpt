@@ -1,12 +1,6 @@
 #ifndef _ACTIVATION_H
 #define _ACTIVATION_H
 
-// Sigmoid activation function
-float *sigmoid(float* inputs, int size);
-
-// Derivative of the sigmoid function
-float *sigmoidDerivative(float* inputs, int size);
-
 // ReLU activation function
 float* relu(float* inputs, int size);
 

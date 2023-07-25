@@ -82,12 +82,10 @@ float* calculateError(float* output, float* target, int size) {
 }
 
 void backwardPass(NeuralNetwork* network, float *input, float* error, float learning_rate) {
-    Layer* output_layer = network->layers[network->num_layers-1];
     // Compute the error derivative of the output layer
     float* output_error = error;
     for (int i = network->num_layers-1; i >= 0; i--) {
         Layer* layer = network->layers[i];
-        // float* layer_inputs = i == 0 ? output_layer->outputs : network->layers[i-1]->outputs;  // modified line
         float* layer_inputs = i == 0 ? input : network->layers[i-1]->outputs;  // modified line
 
         // Compute the derivative of the error with respect to weights and biases

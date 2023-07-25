@@ -1,9 +1,9 @@
 CC = gcc
 # CFLAGS = -g -fsanitize=address
-CFLAGS =  -Wall -Wextra -std=c99 -g -D_AC_DEBUG_MEMORY_=NULL
+CFLAGS =  -Wall -Wextra -std=c99 -g
 INCLUDES = -I.
 
-SRCS = main.c activation.c matrix.c image_utils.c data_processing.c neural_network.c ac_allocator.c
+SRCS = main.c activation.c matrix.c image_utils.c data_processing.c neural_network.c
 OBJS = $(SRCS:.c=.o)
 TARGET = train_and_test
 

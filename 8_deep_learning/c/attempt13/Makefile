@@ -1,5 +1,4 @@
 CC = gcc
-# CFLAGS = -g -fsanitize=address
 CFLAGS =  -Wall -Wextra -std=c99 -g
 INCLUDES = -I.
 

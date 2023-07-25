@@ -4,28 +4,19 @@
 #include <stdlib.h>
 
 typedef struct {
-    int input_size;
-    int output_size;
+    int size;
+    int inputs_size;
     float* biases;
     float** weights;
-    float* (*activation_function)(float*);
-    float* (*activation_derivative_function)(float*);
-} Layer;
-
-typedef struct {
-    int size;
-    float* inputs;
+    float* (*activation_function)(float*, int);
+    float* (*activation_derivative)(float*, int);
     float* outputs;
-    float* biases;
-    float* weights;
-    float* gradients;
-    float* (*activation_function)(float*);
-    float* (*activation_derivative)(float*);
 } Layer;
 
 typedef struct {
     int num_layers;
-    Layer* layers;
+    int input_size; // new field
+    Layer** layers;
 } NeuralNetwork;
 
 typedef struct {
@@ -36,13 +27,8 @@ typedef struct {
     float** outputs;
 } Dataset;
 
-float randFloat();
-
-NeuralNetwork* createNeuralNetwork(int input_size, int output_size);
-Layer* addDenseLayer(NeuralNetwork* network, int input_size, int size, float* (*activation_function)(float*), float* (*activation_derivative)(float*));
-void forwardPass(NeuralNetwork* network, float* input);
-float calculateError(NeuralNetwork* network, float* target);
-void backwardPass(NeuralNetwork* network, float* target, float learning_rate);
+NeuralNetwork* createNeuralNetwork(int input_size);
+Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int));
 void train(NeuralNetwork* network, Dataset* data, int epochs, float learning_rate);
 void test(NeuralNetwork* network, Dataset* data);
 

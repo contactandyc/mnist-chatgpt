@@ -27,13 +27,8 @@ typedef struct {
     float** outputs;
 } Dataset;
 
-float randFloat();
-
 NeuralNetwork* createNeuralNetwork(int input_size);
 Layer* addDenseLayer(NeuralNetwork* network, int size, float* (*activation_function)(float*, int), float* (*activation_derivative)(float*, int));
-// void forwardPass(NeuralNetwork* network, float* input);
-// float calculateError(NeuralNetwork* network, float* target);
-// void backwardPass(NeuralNetwork* network, float* target, float learning_rate);
 void train(NeuralNetwork* network, Dataset* data, int epochs, float learning_rate);
 void test(NeuralNetwork* network, Dataset* data);
 

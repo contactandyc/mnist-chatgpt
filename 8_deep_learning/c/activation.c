@@ -4,21 +4,26 @@
 #include <math.h>
 
 // ReLU activation function
-void relu(float* inputs, int size) {
+float* relu(float* inputs, int size) {
+    float* outputs = (float*)malloc(size * sizeof(float));
     for (int i = 0; i < size; i++) {
-        inputs[i] = inputs[i] > 0 ? inputs[i] : 0;
+        outputs[i] = inputs[i] > 0 ? inputs[i] : 0;
     }
+    return outputs;
 }
 
 // Derivative of ReLU activation function
-void reluDerivative(float* inputs, int size) {
+float* reluDerivative(float* inputs, int size) {
+    float* outputs = (float*)malloc(size * sizeof(float));
     for (int i = 0; i < size; i++) {
-        inputs[i] = inputs[i] > 0 ? 1.0f : 0.0f;
+        outputs[i] = inputs[i] > 0 ? 1.0f : 0.0f;
     }
+    return outputs;
 }
 
 // Softmax activation function
-void softmax(float* inputs, int size) {
+float* softmax(float* inputs, int size) {
+    float* outputs = (float*)malloc(size * sizeof(float));
     float max = inputs[0];
     float sum = 0.0f;
 
@@ -31,13 +36,15 @@ void softmax(float* inputs, int size) {
 
     // Compute softmax values
     for (int i = 0; i < size; i++) {
-        inputs[i] = exp(inputs[i] - max);
-        sum += inputs[i];
+        outputs[i] = exp(inputs[i] - max);
+        sum += outputs[i];
     }
 
     for (int i = 0; i < size; i++) {
-        inputs[i] /= sum;
+        outputs[i] /= sum;
     }
+
+    return outputs;
 }
 
 // Derivative of Softmax activation function
@@ -45,8 +52,10 @@ void softmax(float* inputs, int size) {
 // However, in the context of backpropagation for the output layer with cross-entropy loss,
 // this derivative is correct as the loss and softmax derivative get simplified in a way that we only need to
 // subtract the target output from the network's output.
-void softmaxDerivative(float* inputs, int size) {
-    (void)(inputs);
-    (void)(size);
-    // do nothing at all
+float* softmaxDerivative(float* inputs, int size) {
+    float* outputs = (float*)malloc(size * sizeof(float));
+    for (int i = 0; i < size; i++) {
+        outputs[i] = inputs[i];
+    }
+    return outputs;
 }

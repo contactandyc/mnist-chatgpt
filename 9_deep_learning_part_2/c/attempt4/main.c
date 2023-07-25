@@ -29,14 +29,14 @@ int main(int argc, char *argv[]) {
 
     // Set the dataset sizes
     Dataset training_dataset = {
-        .num_samples = 10, // training_data.num_inputs,
+        .num_samples = training_data.num_inputs / 100,
         .input_size = 784,
         .output_size = 10,
         .inputs = training_data.inputs,
         .outputs = training_data.targets
     };
     Dataset test_dataset = {
-        .num_samples = 2, // test_data.num_inputs,
+        .num_samples = test_data.num_inputs / 100,
         .input_size = 784,
         .output_size = 10,
         .inputs = test_data.inputs,
@@ -49,7 +49,9 @@ int main(int argc, char *argv[]) {
     // the first one with a size of 128 and the second one (output layer) with a size of 10 (if you're classifying digits, for instance).
     // I'm also assuming you're using a ReLU activation for the first layer and a Softmax for the output layer.
     // You'll have to implement the corresponding functions: relu, reluDerivative, softmax, softmaxDerivative.
-    addDenseLayer(network, 128, relu, reluDerivative);
+    addDenseLayer(network, 128, sigmoid, sigmoidDerivative);
+    addDenseLayer(network, 256, sigmoid, sigmoidDerivative);
+    addDenseLayer(network, 64, sigmoid, sigmoidDerivative);
     addDenseLayer(network, 10, softmax, softmaxDerivative); // If you're classifying digits, the output layer size should be 10.
 
     // Train the Neural Network

@@ -29,14 +29,14 @@ int main(int argc, char *argv[]) {
 
     // Set the dataset sizes
     Dataset training_dataset = {
-        .num_samples = 10, // training_data.num_inputs,
+        .num_samples = training_data.num_inputs / 100,
         .input_size = 784,
         .output_size = 10,
         .inputs = training_data.inputs,
         .outputs = training_data.targets
     };
     Dataset test_dataset = {
-        .num_samples = 2, // test_data.num_inputs,
+        .num_samples = test_data.num_inputs / 100,
         .input_size = 784,
         .output_size = 10,
         .inputs = test_data.inputs,

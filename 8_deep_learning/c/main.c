@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "data_processing.h"
 #include "neural_network.h"
+#include "activation.h"
 
 int main(int argc, char *argv[]) {
     if (argc < 5) {
@@ -15,27 +16,53 @@ int main(int argc, char *argv[]) {
     const char *test_label_filename = argv[4];
 
     // Load input and target data
-    InputAndTargets data = loadInputAndTargets(train_image_filename, train_label_filename);
-
-    // Define neural network hyperparameters
-    int input_size = 768; // Input size (number of features)
-    int hidden_size = 128; // Number of hidden units
-    int output_size = 10; // Number of output classes
-    int epochs = 30; // Number of training epochs
-    float learning_rate = 0.01;
-
-    // Create and train the neural network
-    NeuralNetwork* model = createNeuralNetwork(input_size, hidden_size, output_size);
-    trainNeuralNetwork(model, &data, epochs, learning_rate);
-
+    InputAndTargets training_data = loadInputAndTargets(train_image_filename, train_label_filename);
     InputAndTargets test_data = loadInputAndTargets(test_image_filename, test_label_filename);
 
-    // Test the trained model
-    testModel(model, &test_data);
+    /* ChatGPT - please fill in the code here */
+    // Create a new NeuralNetwork
+    NeuralNetwork* network = createNeuralNetwork(784);
 
-    // Clean up memory
-    freeNeuralNetwork(model);
-    freeInputAndTargets(&data);
+    // Set learning rate and epochs
+    float learning_rate = 0.01; // TODO: Adjust as needed
+    int epochs = 5; // TODO: Adjust as needed
+
+    // Set the dataset sizes
+    Dataset training_dataset = {
+        .num_samples = 10, // training_data.num_inputs,
+        .input_size = 784,
+        .output_size = 10,
+        .inputs = training_data.inputs,
+        .outputs = training_data.targets
+    };
+    Dataset test_dataset = {
+        .num_samples = 2, // test_data.num_inputs,
+        .input_size = 784,
+        .output_size = 10,
+        .inputs = test_data.inputs,
+        .outputs = test_data.targets
+    };
+
+    // Add Dense Layers to the network
+    // You can add as many layers as needed and specify the activation function for each layer.
+    // For this example, I'm assuming you're using two layers:
+    // the first one with a size of 128 and the second one (output layer) with a size of 10 (if you're classifying digits, for instance).
+    // I'm also assuming you're using a ReLU activation for the first layer and a Softmax for the output layer.
+    // You'll have to implement the corresponding functions: relu, reluDerivative, softmax, softmaxDerivative.
+    addDenseLayer(network, 128, relu, reluDerivative);
+    addDenseLayer(network, 10, softmax, softmaxDerivative); // If you're classifying digits, the output layer size should be 10.
+
+    // Train the Neural Network
+    train(network, &training_dataset, epochs, learning_rate);
+
+    // Test the Neural Network
+    test(network, &test_dataset);
+
+    // Don't forget to free your network when you're done
+    /* TODO: Implement the freeNeuralNetwork function if not implemented */
+    // freeNeuralNetwork(network);
+
+    freeInputAndTargets(&training_data);
     freeInputAndTargets(&test_data);
 
     return 0;

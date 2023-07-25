@@ -1,8 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -O3
+CFLAGS =  -Wall -Wextra -std=c99 -g
 INCLUDES = -I.
 
-SRCS = main.c image_utils.c data_processing.c neural_network.c
+SRCS = main.c activation.c matrix.c image_utils.c data_processing.c neural_network.c
 OBJS = $(SRCS:.c=.o)
 TARGET = train_and_test
 
