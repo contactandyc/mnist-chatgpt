@@ -76,9 +76,9 @@ void ac_dump_global_allocations(ac_allocator_t *a, FILE *out) {
 
 ac_allocator_t *global_allocator = NULL;
 
-void save_old_log(ac_allocator_t *a, size_t saves, char *tmp) {
+void save_old_log(ac_allocator_t *a, size_t saves, char *tmp, int tmp_len) {
   int num = 0;
-  int s = saves;
+  // int s = saves;
   for (int i = 32; i > 0; i--) {
     uint32_t ix = i - 1;
     uint32_t v = 1 << ix;
@@ -94,13 +94,13 @@ void save_old_log(ac_allocator_t *a, size_t saves, char *tmp) {
     char *p = tmp;
     char *old_name = p;
     if (num) {
-      sprintf(old_name, "%s.%d", a->logfile, num);
+      snprintf(old_name, tmp_len/2, "%s.%d", a->logfile, num);
       p += strlen(old_name) + 1;
     } else
       old_name = (char *)a->logfile;
 
     char *new_name = p;
-    sprintf(new_name, "%s.%d", a->logfile, num + 1);
+    snprintf(new_name, tmp_len/2, "%s.%d", a->logfile, num + 1);
     // printf("rename: %s => %s\n", old_name, new_name);
     rename(old_name, new_name);
   }
@@ -113,10 +113,11 @@ void *dump_global_allocations_thread(void *arg) {
   size_t save = 0;
   struct timespec ts;
 
-  char *tmp = (char *)malloc((strlen(a->logfile) * 2) * 100);
+  int tmp_len = (strlen(a->logfile) * 2) * 100;
+  char *tmp = (char *)malloc(tmp_len);
   int done = 0;
   while (!done) {
-    save_old_log(a, save, tmp);
+    save_old_log(a, save, tmp, tmp_len);
     pthread_mutex_lock(&a->mutex);
     time_t t = time(NULL);
     FILE *out = fopen(a->logfile, "wb");
