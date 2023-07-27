@@ -21,14 +21,14 @@ void sigmoidDerivative(float* inputs, int size) {
 // ReLU activation function
 void relu(float* inputs, int size) {
     for (int i = 0; i < size; i++) {
-        inputs[i] = inputs[i] > 0 ? inputs[i] : 0.0f;
+        inputs[i] = inputs[i] > 0 ? inputs[i] : 0.001;
     }
 }
 
 // Derivative of ReLU activation function
 void reluDerivative(float* inputs, int size) {
     for (int i = 0; i < size; i++) {
-        inputs[i] = inputs[i] > 0 ? 1.0f : 0.0f;
+        inputs[i] = inputs[i] > 0 ? 0.999f : 0.001f;
     }
 }
 
